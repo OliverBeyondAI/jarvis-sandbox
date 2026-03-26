@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BeyondAI — AI Chief of Staff as a Service</title>
+  <style>
+    :root {
+      --color-bg: #0a0a0f;
+      --color-surface: #12121a;
+      --color-border: rgba(255, 255, 255, 0.06);
+      --color-text: #e8e8ed;
+      --color-text-muted: #8a8a9a;
+      --color-primary: #6c5ce7;
+      --color-primary-light: #a29bfe;
+      --color-primary-glow: rgba(108, 92, 231, 0.3);
+      --color-accent: #00cec9;
+      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      --max-width: 1120px;
+      --radius: 12px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Nav */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(10, 10, 15, 0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .logo {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--color-text);
+    }
+
+    .logo span {
+      color: var(--color-primary-light);
+    }
+
+    .nav-cta {
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
+      border: 1px solid var(--color-primary);
+      background: transparent;
+      color: var(--color-primary-light);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+    }
+
+    .nav-cta:hover {
+      background: var(--color-primary);
+      color: #fff;
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 2rem 6rem;
+      position: relative;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--color-primary-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      max-width: 720px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+      margin-bottom: 2rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-accent);
+      box-shadow: 0 0 8px var(--color-accent);
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 4.25rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 .gradient {
+      background: linear-gradient(135deg, var(--color-primary-light), var(--color-accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--color-text-muted);
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2rem;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #fff;
+      box-shadow: 0 4px 24px var(--color-primary-glow);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px var(--color-primary-glow);
+    }
+
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary-light);
+      transform: translateY(-2px);
+    }
+
+    /* Features */
+    .features {
+      padding: 6rem 2rem;
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .features-header h2 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .features-header p {
+      color: var(--color-text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .feature-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      transition: var(--transition);
+    }
+
+    .feature-card:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1.25rem;
+      background: rgba(108, 92, 231, 0.1);
+      border: 1px solid rgba(108, 92, 231, 0.2);
+    }
+
+    .feature-card h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      color: var(--color-text-muted);
+      font-size: 0.925rem;
+      line-height: 1.6;
+    }
+
+    /* Social proof */
+    .social-proof {
+      padding: 4rem 2rem;
+      text-align: center;
+      border-top: 1px solid var(--color-border);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .social-proof p {
+      color: var(--color-text-muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 2rem;
+    }
+
+    .logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      opacity: 0.4;
+    }
+
+    .logos span {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: var(--color-text);
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: 8rem 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(0, 206, 201, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .cta-section p {
+      color: var(--color-text-muted);
+      margin-bottom: 2.5rem;
+      font-size: 1.1rem;
+      position: relative;
+    }
+
+    /* Footer */
+    footer {
+      padding: 2rem;
+      text-align: center;
+      border-top: 1px solid var(--color-border);
+      color: var(--color-text-muted);
+      font-size: 0.825rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav {
+        padding: 1rem 1.25rem;
+      }
+
+      .hero {
+        padding: 7rem 1.25rem 4rem;
+      }
+
+      .features {
+        padding: 4rem 1.25rem;
+      }
+
+      .cta-group {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .btn {
+        width: 100%;
+        max-width: 320px;
+        justify-content: center;
+      }
+
+      .logos {
+        gap: 2rem;
+      }
+
+      .cta-section {
+        padding: 5rem 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">Beyond<span>AI</span></div>
+    <a href="#get-started" class="nav-cta">Get Started</a>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-content">
+      <div class="badge">Now Available</div>
+      <h1>
+        <span class="gradient">AI Chief of Staff</span><br>as a Service
+      </h1>
+      <p>
+        Your AI-powered executive assistant that manages priorities, streamlines decisions, and keeps your leadership team aligned — so you can focus on what matters most.
+      </p>
+      <div class="cta-group">
+        <a href="#get-started" class="btn btn-primary">Start Free Trial &rarr;</a>
+        <a href="#features" class="btn btn-secondary">See How It Works</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="social-proof">
+    <p>Trusted by forward-thinking teams</p>
+    <div class="logos">
+      <span>Acme Corp</span>
+      <span>Stratton</span>
+      <span>Meridian</span>
+      <span>Apex Labs</span>
+      <span>NovaTech</span>
+    </div>
+  </section>
+
+  <section class="features" id="features">
+    <div class="features-header">
+      <h2>Everything your executive team needs</h2>
+      <p>Intelligent automation for the work that sits between strategy and execution.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#9881;</div>
+        <h3>Smart Prioritization</h3>
+        <p>Automatically triages requests, surfaces what's urgent, and recommends where your attention should go next.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9878;</div>
+        <h3>Meeting Intelligence</h3>
+        <p>Prepares briefs before every meeting, captures action items in real-time, and follows up so nothing slips.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9879;</div>
+        <h3>Decision Support</h3>
+        <p>Aggregates context from across your tools and surfaces the insights you need to make faster, better calls.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9883;</div>
+        <h3>Team Alignment</h3>
+        <p>Tracks OKRs, flags blockers early, and keeps cross-functional initiatives moving without the overhead.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128274;</div>
+        <h3>Enterprise Security</h3>
+        <p>SOC 2 Type II certified with end-to-end encryption. Your data stays yours — always.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#9889;</div>
+        <h3>Instant Integrations</h3>
+        <p>Connects to Slack, Notion, Google Workspace, Jira, and 50+ other tools in minutes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-section" id="get-started">
+    <h2>Ready to lead smarter?</h2>
+    <p>Join hundreds of executives who reclaimed their time with BeyondAI.</p>
+    <a href="#" class="btn btn-primary">Get Started Free &rarr;</a>
+  </section>
+
+  <footer>
+    &copy; 2026 BeyondAI. All rights reserved.
+  </footer>
+
+</body>
+</html>
