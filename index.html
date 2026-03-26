@@ -309,6 +309,103 @@
       color: var(--color-text);
     }
 
+    /* Testimonials */
+    .testimonials {
+      padding: 6rem 2rem;
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+
+    .testimonials-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .testimonials-header h2 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .testimonials-header p {
+      color: var(--color-text-muted);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .testimonial-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .testimonial-card:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .testimonial-quote {
+      color: var(--color-text);
+      font-size: 0.975rem;
+      line-height: 1.7;
+      margin-bottom: 1.5rem;
+      flex: 1;
+    }
+
+    .testimonial-quote::before {
+      content: '\201C';
+      display: block;
+      font-size: 2.5rem;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--color-primary-light), var(--color-accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .testimonial-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .testimonial-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--color-text);
+    }
+
+    .testimonial-role {
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+
     /* CTA Section */
     .cta-section {
       padding: 8rem 2rem;
@@ -385,6 +482,14 @@
         grid-template-columns: 1fr;
       }
 
+      .testimonials {
+        padding: 4rem 1.25rem;
+      }
+
+      .testimonials-grid {
+        grid-template-columns: 1fr;
+      }
+
       .cta-section {
         padding: 5rem 1.25rem;
       }
@@ -445,6 +550,45 @@
         <div class="feature-icon">🌙</div>
         <h3>Always On</h3>
         <p>Works while you sleep. Processes queued tasks around the clock so you wake up to progress, not a backlog.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="testimonials" id="testimonials">
+    <div class="testimonials-header">
+      <h2>Trusted by leaders</h2>
+      <p>Hear from executives who transformed how they work with BeyondAI.</p>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="testimonial-quote">BeyondAI cut our quarterly planning cycle from three weeks to four days. It synthesizes input from every department head and surfaces the conflicts before we even sit down. Our board prep has never been this sharp.</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));">MR</div>
+          <div>
+            <div class="testimonial-name">Margaret Reynolds</div>
+            <div class="testimonial-role">CFO, Harmon Industries</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-quote">As a solo founder wearing ten hats, I was drowning in context switching. BeyondAI triages my inbox, preps investor updates, and flags the two or three things that actually need my attention each day. It's like having a seasoned chief of staff on day one.</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background: linear-gradient(135deg, var(--color-accent), #00b894);">JT</div>
+          <div>
+            <div class="testimonial-name">James Turano</div>
+            <div class="testimonial-role">Founder & CEO, Layup Health</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-quote">I manage 40 active listings and a team of twelve agents. BeyondAI keeps every deal on track — it follows up with lenders, reminds me of inspection deadlines, and drafts client updates before I even think to ask. I closed 30% more last quarter.</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background: linear-gradient(135deg, #e17055, #fdcb6e);">SN</div>
+          <div>
+            <div class="testimonial-name">Sofia Nguyen</div>
+            <div class="testimonial-role">Senior Broker, Pinnacle Realty Group</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
