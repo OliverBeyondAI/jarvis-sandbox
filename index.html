@@ -146,7 +146,9 @@
       box-shadow: 0 0 30px rgba(0, 245, 255, 0.3), 0 0 60px rgba(123, 47, 255, 0.2);
     }
 
-    /* ===== Scroll Fade-in ===== */
+    .nav-cta-mobile { display: none; }
+
+    /* ===== Scroll Animations ===== */
     .fade-in {
       opacity: 0;
       transform: translateY(40px);
@@ -155,6 +157,103 @@
     .fade-in.visible {
       opacity: 1;
       transform: translateY(0);
+    }
+    .slide-in-left {
+      opacity: 0;
+      transform: translateX(-60px);
+      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    }
+    .slide-in-left.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .slide-in-right {
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    }
+    .slide-in-right.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .scale-in {
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    }
+    .scale-in.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ===== Metrics Bar ===== */
+    .metrics-bar {
+      padding: 5rem 2rem;
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+    .metric-item {
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .metric-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), var(--violet), transparent);
+      opacity: 0.6;
+    }
+    .metric-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 30px rgba(0, 245, 255, 0.06);
+      border-color: rgba(0, 245, 255, 0.15);
+    }
+    .metric-value {
+      font-family: var(--font-heading);
+      font-size: clamp(2.5rem, 4vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .metric-value .suffix {
+      font-size: 0.6em;
+      -webkit-text-fill-color: var(--cyan);
+    }
+    .metric-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    @media (max-width: 1024px) {
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+      .metrics-bar { padding: 4rem 1.25rem; }
+      .metric-item { padding: 2rem 1rem; }
     }
 
     /* ===== Hero ===== */
@@ -182,7 +281,13 @@
       position: absolute;
       inset: 0;
       z-index: 2;
-      pointer-events: none;
+      pointer-events: all;
+      cursor: default;
+    }
+    @media (max-width: 768px) {
+      #particles-canvas {
+        pointer-events: none;
+      }
     }
     .hero-content {
       position: relative;
@@ -888,6 +993,264 @@
       color: var(--muted);
     }
 
+    /* ===== Ask Jarvis Chat Widget ===== */
+    .ask-jarvis {
+      padding: 7rem 2rem;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .chat-container {
+      background: rgba(5, 5, 16, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), 0 0 80px rgba(123, 47, 255, 0.06), 0 0 120px rgba(0, 245, 255, 0.03);
+      position: relative;
+    }
+    .chat-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), var(--violet), var(--gold));
+      opacity: 0.6;
+    }
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .chat-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(0, 245, 255, 0.25);
+    }
+    .chat-header-info {
+      flex: 1;
+    }
+    .chat-header-name {
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--white);
+    }
+    .chat-header-status {
+      font-size: 0.75rem;
+      color: #28c840;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .chat-header-status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #28c840;
+      box-shadow: 0 0 8px #28c840;
+    }
+    .chat-messages {
+      padding: 1.5rem;
+      min-height: 320px;
+      max-height: 420px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scroll-behavior: smooth;
+    }
+    .chat-messages::-webkit-scrollbar {
+      width: 4px;
+    }
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+    }
+    .chat-msg {
+      max-width: 82%;
+      padding: 0.85rem 1.15rem;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      animation: msgAppear 0.3s ease-out;
+      position: relative;
+    }
+    @keyframes msgAppear {
+      from { opacity: 0; transform: translateY(8px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .chat-msg.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.15), rgba(123, 47, 255, 0.15));
+      border: 1px solid rgba(0, 245, 255, 0.2);
+      color: var(--white);
+      border-bottom-right-radius: 4px;
+    }
+    .chat-msg.jarvis {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: rgba(240, 240, 245, 0.9);
+      border-bottom-left-radius: 4px;
+    }
+    .chat-msg.jarvis .msg-label {
+      font-family: var(--font-heading);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+    .chat-msg.user .msg-label {
+      font-family: var(--font-heading);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(0, 245, 255, 0.6);
+      margin-bottom: 0.35rem;
+      display: block;
+      text-align: right;
+    }
+    .thinking-dots {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      padding: 4px 0;
+    }
+    .thinking-dots span {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--cyan);
+      opacity: 0.3;
+      animation: dotPulse 1.2s ease-in-out infinite;
+    }
+    .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes dotPulse {
+      0%, 60%, 100% { opacity: 0.3; transform: scale(0.8); }
+      30% { opacity: 1; transform: scale(1.1); box-shadow: 0 0 8px var(--cyan); }
+    }
+    .chat-typing-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--cyan);
+      margin-left: 1px;
+      vertical-align: text-bottom;
+      animation: cursorBlink 0.75s step-end infinite;
+      box-shadow: 0 0 6px var(--cyan);
+    }
+    .chat-input-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .chat-input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      color: var(--white);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .chat-input::placeholder {
+      color: var(--muted);
+    }
+    .chat-input:focus {
+      border-color: rgba(0, 245, 255, 0.3);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.08);
+    }
+    .chat-send {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, var(--cyan), var(--violet));
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: var(--transition);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.2);
+    }
+    .chat-send:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.35);
+    }
+    .chat-send:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .chat-send svg {
+      width: 18px;
+      height: 18px;
+    }
+    .chat-suggestions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding: 0 1.25rem 1rem;
+    }
+    .chat-suggestion {
+      padding: 0.4rem 0.85rem;
+      border-radius: 100px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font-body);
+    }
+    .chat-suggestion:hover {
+      color: var(--cyan);
+      border-color: rgba(0, 245, 255, 0.25);
+      background: rgba(0, 245, 255, 0.06);
+    }
+    @media (max-width: 768px) {
+      .ask-jarvis { padding: 5rem 1.25rem; }
+      .chat-messages { min-height: 260px; max-height: 340px; }
+      .chat-msg { max-width: 90%; }
+      .chat-suggestions { gap: 0.4rem; }
+      .chat-suggestion { font-size: 0.72rem; padding: 0.35rem 0.7rem; }
+    }
+
     /* ===== Floating Card Animation ===== */
     @keyframes float {
       0%, 100% { transform: translateY(0); }
@@ -900,22 +1263,24 @@
     .floating:nth-child(5) { animation-delay: -4s; }
     .floating:nth-child(6) { animation-delay: -5s; }
 
-    /* ===== Staggered Fade-in ===== */
-    .fade-in[data-delay="1"] { transition-delay: 0.1s; }
-    .fade-in[data-delay="2"] { transition-delay: 0.2s; }
-    .fade-in[data-delay="3"] { transition-delay: 0.3s; }
-    .fade-in[data-delay="4"] { transition-delay: 0.4s; }
-    .fade-in[data-delay="5"] { transition-delay: 0.5s; }
+    /* ===== Staggered Animation Delays ===== */
+    [data-delay="1"] { transition-delay: 0.1s; }
+    [data-delay="2"] { transition-delay: 0.2s; }
+    [data-delay="3"] { transition-delay: 0.3s; }
+    [data-delay="4"] { transition-delay: 0.4s; }
+    [data-delay="5"] { transition-delay: 0.5s; }
 
-    /* ===== Animated Gradient Text ===== */
+    /* ===== Animated Gradient Text with Hue Shift ===== */
     @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% { background-position: 0% 50%; filter: hue-rotate(0deg); }
+      25% { background-position: 50% 100%; filter: hue-rotate(30deg); }
+      50% { background-position: 100% 50%; filter: hue-rotate(60deg); }
+      75% { background-position: 50% 0%; filter: hue-rotate(30deg); }
+      100% { background-position: 0% 50%; filter: hue-rotate(0deg); }
     }
     .gradient-text {
       background-size: 200% 200%;
-      animation: gradientShift 4s ease-in-out infinite;
+      animation: gradientShift 6s ease-in-out infinite;
     }
 
     /* ===== Scroll Progress Bar ===== */
@@ -962,6 +1327,47 @@
     @keyframes shimmer {
       0% { left: -60%; }
       100% { left: 120%; }
+    }
+
+    /* ===== Pulsing Glow on CTA Button ===== */
+    @keyframes ctaPulse {
+      0%, 100% {
+        box-shadow: 0 4px 30px rgba(0, 245, 255, 0.35), 0 0 60px rgba(0, 245, 255, 0.15);
+      }
+      50% {
+        box-shadow: 0 4px 50px rgba(0, 245, 255, 0.6), 0 0 100px rgba(0, 245, 255, 0.3), 0 0 140px rgba(123, 47, 255, 0.15);
+      }
+    }
+    .btn-primary {
+      animation: ctaPulse 2.5s ease-in-out infinite;
+    }
+    .btn-primary:hover {
+      animation: none;
+    }
+
+    /* ===== Typewriter Effect ===== */
+    .typewriter-wrapper {
+      min-height: 3.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .typewriter {
+      display: inline;
+    }
+    .typewriter-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.15em;
+      background: var(--cyan);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: cursorBlink 0.75s step-end infinite;
+      box-shadow: 0 0 8px var(--cyan), 0 0 16px rgba(0, 245, 255, 0.3);
+    }
+    @keyframes cursorBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
     }
 
     /* ===== Cursor Glow ===== */
@@ -1027,6 +1433,17 @@
     }
     @media (max-width: 768px) {
       nav { padding: 0.9rem 1.25rem; }
+      .nav-cta { display: none; }
+      .nav-cta-mobile { display: list-item; list-style: none; }
+      .nav-cta-mobile a {
+        padding: 0.7rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-family: var(--font-heading);
+        background: linear-gradient(135deg, rgba(0, 245, 255, 0.9), rgba(0, 200, 220, 1));
+        color: #050510 !important;
+        font-size: 1rem !important;
+      }
       .hamburger { display: flex; }
       .nav-links {
         display: none;
@@ -1051,20 +1468,94 @@
         font-size: 1.25rem;
         color: var(--white);
       }
-      .hero { padding: 7rem 1.25rem 4rem; }
-      .cta-group { flex-direction: column; align-items: center; }
-      .btn { width: 100%; max-width: 320px; justify-content: center; }
-      .features, .how-it-works, .dashboard-section, .testimonials, .pricing { padding: 5rem 1.25rem; }
+      .hero { padding: 6rem 1.25rem 3.5rem; min-height: calc(100vh - 60px); min-height: calc(100dvh - 60px); }
+      .hero-content { max-width: 100%; }
+      .badge { font-size: 0.72rem; padding: 0.4rem 1rem; margin-bottom: 1.5rem; }
+      .cta-group { flex-direction: column; align-items: center; gap: 0.75rem; }
+      .btn { width: 100%; max-width: 320px; justify-content: center; padding: 0.85rem 2rem; font-size: 0.95rem; }
+      .typewriter-wrapper { min-height: 4.5em; }
+      .features, .how-it-works, .dashboard-section, .testimonials, .pricing { padding: 4rem 1.25rem; }
+      .section-header { margin-bottom: 2.5rem; }
       .features-grid, .testimonials-grid, .pricing-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
       }
+      .feature-card, .testimonial-card, .pricing-card { padding: 1.75rem; }
+      /* Disable floating animation on mobile for performance */
+      .floating { animation: none; }
+      .timeline { gap: 2rem; }
       .timeline::before { left: 23px; }
+      .timeline-step { gap: 1.25rem; }
       .step-number { width: 46px; height: 46px; font-size: 1rem; }
-      .final-cta { padding: 5rem 1.25rem; }
+      .step-content p { font-size: 0.9rem; }
+      .browser-url { font-size: 0.7rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+      .pricing-card.featured::after { font-size: 0.6rem; padding: 0.25rem 2rem; right: -1.5rem; top: 1rem; }
+      .ticker-item { font-size: 0.78rem; }
+      .final-cta { padding: 4rem 1.25rem; }
+      .final-cta h2 { font-size: clamp(1.75rem, 6vw, 2.5rem); }
+      .spots-bar { width: 160px; }
       .footer-inner { flex-direction: column; text-align: center; }
-      .footer-links { justify-content: center; flex-wrap: wrap; }
+      .footer-links { justify-content: center; flex-wrap: wrap; gap: 1.25rem; }
       .cursor-glow { display: none; }
       .scroll-indicator { display: none; }
+      /* Reduce aurora background size on mobile for performance */
+      .aurora::before, .aurora::after {
+        width: 100vw;
+        height: 100vw;
+        filter: blur(80px);
+        opacity: 0.1;
+      }
+    }
+    /* Extra small screens (320px-480px) */
+    @media (max-width: 480px) {
+      nav { padding: 0.75rem 1rem; }
+      .logo { font-size: 1.2rem; }
+      .hero { padding: 5.5rem 1rem 3rem; }
+      h1 { font-size: clamp(2rem, 8vw, 3rem); margin-bottom: 1rem; }
+      .hero p { font-size: 0.95rem; margin-bottom: 2rem; }
+      .typewriter-wrapper { min-height: 5em; }
+      .features, .how-it-works, .dashboard-section, .testimonials, .pricing { padding: 3rem 1rem; }
+      .section-header h2 { font-size: clamp(1.5rem, 6vw, 2rem); }
+      .section-header p { font-size: 0.9rem; }
+      .feature-card, .testimonial-card, .pricing-card { padding: 1.5rem; }
+      .feature-icon { font-size: 1.75rem; margin-bottom: 1rem; }
+      .feature-card h3 { font-size: 1.05rem; }
+      .feature-card p { font-size: 0.875rem; }
+      .metrics-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .metrics-bar { padding: 3rem 1rem; }
+      .metric-item { padding: 1.5rem 1rem; }
+      .metric-value { font-size: clamp(2rem, 6vw, 2.5rem); }
+      .pricing-price { font-size: 2.5rem; }
+      .pricing-desc { font-size: 0.85rem; }
+      .pricing-features li { font-size: 0.85rem; }
+      .testimonial-quote { font-size: 0.9rem; }
+      .testimonial-name { font-size: 0.875rem; }
+      .testimonial-avatar { width: 38px; height: 38px; font-size: 0.8rem; }
+      .timeline-step { gap: 1rem; }
+      .step-number { width: 40px; height: 40px; font-size: 0.9rem; }
+      .step-content h3 { font-size: 1.1rem; }
+      .step-content p { font-size: 0.85rem; }
+      .ask-jarvis { padding: 3rem 1rem; }
+      .chat-messages { min-height: 220px; max-height: 300px; padding: 1rem; }
+      .chat-msg { max-width: 92%; font-size: 0.85rem; padding: 0.75rem 1rem; }
+      .chat-input-area { padding: 0.75rem 1rem; gap: 0.5rem; }
+      .chat-input { padding: 0.65rem 0.85rem; font-size: 0.85rem; }
+      .chat-send { width: 38px; height: 38px; }
+      .chat-suggestions { padding: 0 1rem 0.75rem; gap: 0.35rem; }
+      .chat-suggestion { font-size: 0.7rem; padding: 0.3rem 0.6rem; }
+      .final-cta { padding: 3rem 1rem; }
+      .final-cta .sub-text { font-size: 1rem; }
+      .spots-counter { font-size: 0.8rem; }
+      .spots-bar { width: 140px; }
+      .btn { padding: 0.8rem 1.5rem; font-size: 0.9rem; border-radius: 10px; }
+      .btn-pricing { padding: 0.75rem; font-size: 0.9rem; }
+      footer { padding: 2rem 1rem; }
+      .footer-links { gap: 1rem; }
+      .footer-links a { font-size: 0.8rem; }
+      .footer-copy { font-size: 0.75rem; }
+      .browser-bar { padding: 0.75rem 1rem; }
+      .browser-dot { width: 10px; height: 10px; }
+      .browser-url { font-size: 0.65rem; max-width: 160px; }
     }
   </style>
 </head>
@@ -1085,8 +1576,10 @@
     <ul class="nav-links" id="nav-links">
       <li><a href="#features">Features</a></li>
       <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#ask-jarvis">Demo</a></li>
       <li><a href="#testimonials">Testimonials</a></li>
       <li><a href="#pricing">Pricing</a></li>
+      <li class="nav-cta-mobile"><a href="#get-started">Request Access</a></li>
     </ul>
     <button class="hamburger" id="hamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -1102,9 +1595,9 @@
       <h1>
         <span class="gradient-text">Your AI Chief of Staff.</span><br>From the Future.
       </h1>
-      <p>
-        Jarvis manages your priorities, executes your tasks, reads your emails, runs your calendar — and gets smarter every single day.
-      </p>
+      <div class="typewriter-wrapper">
+        <p><span class="typewriter" id="typewriter"></span><span class="typewriter-cursor"></span></p>
+      </div>
       <div class="cta-group">
         <a href="#get-started" class="btn btn-primary">Get Early Access &rarr;</a>
         <a href="#how-it-works" class="btn btn-secondary">&#9654; Watch Demo</a>
@@ -1172,21 +1665,21 @@
       <h2>Three Steps to <span class="gradient-text">the Future</span></h2>
     </div>
     <div class="timeline">
-      <div class="timeline-step fade-in">
+      <div class="timeline-step slide-in-left" data-delay="1">
         <div class="step-number cyan">1</div>
         <div class="step-content">
           <h3>You Talk</h3>
           <p>Call, text, or WhatsApp Jarvis. Natural language, no commands needed.</p>
         </div>
       </div>
-      <div class="timeline-step fade-in">
+      <div class="timeline-step slide-in-left" data-delay="2">
         <div class="step-number violet">2</div>
         <div class="step-content">
           <h3>Jarvis Thinks</h3>
           <p>Accesses your full knowledge graph — projects, contacts, priorities, history.</p>
         </div>
       </div>
-      <div class="timeline-step fade-in">
+      <div class="timeline-step slide-in-left" data-delay="3">
         <div class="step-number gold">3</div>
         <div class="step-content">
           <h3>It Gets Done</h3>
@@ -1202,7 +1695,7 @@
       <div class="section-label">Live Preview</div>
       <h2>The Jarvis <span class="gradient-text">Command Center</span></h2>
     </div>
-    <div class="browser-frame fade-in">
+    <div class="browser-frame scale-in">
       <div class="browser-bar">
         <div class="browser-dot red"></div>
         <div class="browser-dot yellow"></div>
@@ -1213,6 +1706,42 @@
     </div>
   </section>
 
+  <!-- Ask Jarvis Chat Widget -->
+  <section class="ask-jarvis" id="ask-jarvis">
+    <div class="section-header fade-in">
+      <div class="section-label">Try It Now</div>
+      <h2>Ask <span class="gradient-text">Jarvis</span></h2>
+      <p>See how Jarvis handles real requests in real time.</p>
+    </div>
+    <div class="chat-container scale-in">
+      <div class="chat-header">
+        <div class="chat-avatar">J</div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">Jarvis</div>
+          <div class="chat-header-status">Online</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-msg jarvis">
+          <span class="msg-label">Jarvis</span>
+          Hey there. I'm Jarvis, your AI Chief of Staff. Ask me anything — I'll show you what I can do.
+        </div>
+      </div>
+      <div class="chat-suggestions" id="chat-suggestions">
+        <button class="chat-suggestion" data-q="What can you do?">What can you do?</button>
+        <button class="chat-suggestion" data-q="Schedule my meetings">Schedule my meetings</button>
+        <button class="chat-suggestion" data-q="Draft an email to my team">Draft an email</button>
+        <button class="chat-suggestion" data-q="What's on my calendar today?">My calendar today</button>
+      </div>
+      <div class="chat-input-area">
+        <input type="text" class="chat-input" id="chat-input" placeholder="Ask Jarvis anything..." autocomplete="off" maxlength="200">
+        <button class="chat-send" id="chat-send" aria-label="Send message">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
   <!-- Testimonials -->
   <section class="testimonials" id="testimonials">
     <div class="section-header fade-in">
@@ -1220,7 +1749,7 @@
       <p>Hear from executives who transformed how they work.</p>
     </div>
     <div class="testimonials-grid">
-      <div class="testimonial-card fade-in" data-delay="1">
+      <div class="testimonial-card slide-in-right" data-delay="1">
         <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
         <div class="testimonial-quote">"Jarvis replaced my EA, my project manager, and my morning coffee ritual. I get more done by 9 AM than I used to by noon."</div>
         <div class="testimonial-author">
@@ -1231,7 +1760,7 @@
           </div>
         </div>
       </div>
-      <div class="testimonial-card fade-in" data-delay="2">
+      <div class="testimonial-card slide-in-right" data-delay="2">
         <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
         <div class="testimonial-quote">"I called Jarvis from the airport and by the time I landed, three client proposals were drafted and sent. This is not normal software."</div>
         <div class="testimonial-author">
@@ -1242,7 +1771,7 @@
           </div>
         </div>
       </div>
-      <div class="testimonial-card fade-in" data-delay="3">
+      <div class="testimonial-card slide-in-right" data-delay="3">
         <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
         <div class="testimonial-quote">"The self-improving loop is what got me. It rated its own work a 6, rewrote it, and sent me a 9. No human does that."</div>
         <div class="testimonial-author">
@@ -1252,6 +1781,32 @@
             <div class="testimonial-role">COO, NovaTech Systems</div>
           </div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Metrics Bar -->
+  <section class="metrics-bar" id="metrics">
+    <div class="section-header fade-in">
+      <div class="section-label">By the Numbers</div>
+      <h2>Trusted to <span class="gradient-text">Deliver</span></h2>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-item scale-in" data-delay="1">
+        <div class="metric-value"><span class="count-up" data-target="15">0</span><span class="suffix">+</span></div>
+        <div class="metric-label">Executives Served</div>
+      </div>
+      <div class="metric-item scale-in" data-delay="2">
+        <div class="metric-value"><span class="count-up" data-target="500">0</span><span class="suffix">+</span></div>
+        <div class="metric-label">Tasks Completed</div>
+      </div>
+      <div class="metric-item scale-in" data-delay="3">
+        <div class="metric-value"><span class="count-up" data-target="26">0</span></div>
+        <div class="metric-label">AI Tools</div>
+      </div>
+      <div class="metric-item scale-in" data-delay="4">
+        <div class="metric-value"><span class="count-up" data-target="4">0</span></div>
+        <div class="metric-label">Active Client Projects</div>
       </div>
     </div>
   </section>
@@ -1330,59 +1885,181 @@
 
   <!-- JS: Particles + Connections + Enhanced Interactions -->
   <script>
-    // Enhanced Particle field with connection lines
+    // Mouse-reactive particle field with connection lines
     (function() {
       const c = document.getElementById('particles-canvas');
       const ctx = c.getContext('2d');
       let w, h, particles = [];
-      const CONNECT_DIST = 120;
+      const CONNECT_DIST = 140;
+      const MOUSE_RADIUS = 180;
+      const MOUSE_FORCE = 0.015;
+      let mouse = { x: -9999, y: -9999, active: false };
+
       function resize() { w = c.width = c.offsetWidth; h = c.height = c.offsetHeight; }
       resize();
       window.addEventListener('resize', resize);
-      for (let i = 0; i < 60; i++) {
+
+      // Track mouse position relative to canvas
+      c.addEventListener('mousemove', function(e) {
+        const rect = c.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+        mouse.active = true;
+      });
+      c.addEventListener('mouseleave', function() {
+        mouse.active = false;
+      });
+      // Touch support for mobile
+      c.addEventListener('touchmove', function(e) {
+        const rect = c.getBoundingClientRect();
+        const touch = e.touches[0];
+        mouse.x = touch.clientX - rect.left;
+        mouse.y = touch.clientY - rect.top;
+        mouse.active = true;
+      }, { passive: true });
+      c.addEventListener('touchend', function() {
+        mouse.active = false;
+      });
+
+      const COLORS = ['#00F5FF', '#7B2FFF', '#FFD700'];
+      const isMobile = window.innerWidth <= 768;
+      const COUNT = isMobile ? 30 : 80;
+      const FRAME_SKIP = isMobile ? 2 : 1;
+      let frameCount = 0;
+      for (let i = 0; i < COUNT; i++) {
         particles.push({
           x: Math.random() * w, y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
+          ox: 0, oy: 0, // original velocity
+          vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
           r: Math.random() * 2 + 0.5,
-          o: Math.random() * 0.5 + 0.15,
-          color: ['#00F5FF', '#7B2FFF', '#FFD700'][Math.floor(Math.random() * 3)]
+          baseO: Math.random() * 0.4 + 0.15,
+          o: 0,
+          color: COLORS[Math.floor(Math.random() * 3)]
         });
+        const p = particles[i];
+        p.ox = p.vx;
+        p.oy = p.vy;
+        p.o = p.baseO;
       }
+
       function draw() {
+        frameCount++;
+        if (isMobile && frameCount % FRAME_SKIP !== 0) {
+          requestAnimationFrame(draw);
+          return;
+        }
         ctx.clearRect(0, 0, w, h);
+
+        // Draw connection lines (skip on mobile for performance)
+        if (!isMobile) {
         for (let i = 0; i < particles.length; i++) {
           for (let j = i + 1; j < particles.length; j++) {
             const dx = particles[i].x - particles[j].x;
             const dy = particles[i].y - particles[j].y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < CONNECT_DIST) {
+              const alpha = (1 - dist / CONNECT_DIST) * 0.12;
               ctx.beginPath();
               ctx.moveTo(particles[i].x, particles[i].y);
               ctx.lineTo(particles[j].x, particles[j].y);
               ctx.strokeStyle = particles[i].color;
-              ctx.globalAlpha = (1 - dist / CONNECT_DIST) * 0.12;
+              ctx.globalAlpha = alpha;
               ctx.lineWidth = 0.5;
               ctx.stroke();
             }
           }
         }
+
+        // Draw mouse connection lines (brighter, to nearby particles)
+        if (mouse.active) {
+          particles.forEach(p => {
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < MOUSE_RADIUS) {
+              const alpha = (1 - dist / MOUSE_RADIUS) * 0.2;
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(mouse.x, mouse.y);
+              ctx.strokeStyle = p.color;
+              ctx.globalAlpha = alpha;
+              ctx.lineWidth = 0.6;
+              ctx.stroke();
+            }
+          });
+        }
+        } // end if (!isMobile) — skip connection lines on mobile
+
+        // Update and draw particles
         particles.forEach(p => {
-          p.x += p.vx; p.y += p.vy;
-          if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
-          if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+          // Mouse attraction: gently pull particles toward cursor
+          if (mouse.active) {
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < MOUSE_RADIUS && dist > 1) {
+              const force = (1 - dist / MOUSE_RADIUS) * MOUSE_FORCE;
+              p.vx += dx / dist * force;
+              p.vy += dy / dist * force;
+              // Brighten particles near mouse
+              p.o = p.baseO + (1 - dist / MOUSE_RADIUS) * 0.4;
+            } else {
+              p.o += (p.baseO - p.o) * 0.05;
+            }
+          } else {
+            p.o += (p.baseO - p.o) * 0.05;
+          }
+
+          // Gentle drift back toward original velocity (damping)
+          p.vx += (p.ox - p.vx) * 0.02;
+          p.vy += (p.oy - p.vy) * 0.02;
+
+          // Clamp velocity to prevent runaway
+          const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+          if (speed > 1.5) {
+            p.vx = (p.vx / speed) * 1.5;
+            p.vy = (p.vy / speed) * 1.5;
+          }
+
+          p.x += p.vx;
+          p.y += p.vy;
+
+          // Wrap edges
+          if (p.x < 0) p.x = w;
+          if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h;
+          if (p.y > h) p.y = 0;
+
+          // Draw particle with glow
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
           ctx.fillStyle = p.color;
           ctx.globalAlpha = p.o;
           ctx.fill();
+
+          // Soft glow halo for particles near mouse
+          if (mouse.active) {
+            const dx = mouse.x - p.x;
+            const dy = mouse.y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < MOUSE_RADIUS * 0.6) {
+              const glowAlpha = (1 - dist / (MOUSE_RADIUS * 0.6)) * 0.15;
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+              ctx.fillStyle = p.color;
+              ctx.globalAlpha = glowAlpha;
+              ctx.fill();
+            }
+          }
         });
+
         ctx.globalAlpha = 1;
         requestAnimationFrame(draw);
       }
       draw();
     })();
 
-    // Scroll-triggered fade-in via IntersectionObserver
+    // Scroll-triggered animations via IntersectionObserver
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -1390,7 +2067,30 @@
         }
       });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right, .scale-in').forEach(el => observer.observe(el));
+
+    // Count-up animation for metrics
+    const countObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          const target = parseInt(el.getAttribute('data-target'), 10);
+          const duration = 2000;
+          const start = performance.now();
+          function easeOutQuart(t) { return 1 - Math.pow(1 - t, 4); }
+          function update(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            const value = Math.round(easeOutQuart(progress) * target);
+            el.textContent = value.toLocaleString();
+            if (progress < 1) requestAnimationFrame(update);
+          }
+          requestAnimationFrame(update);
+          countObserver.unobserve(el);
+        }
+      });
+    }, { threshold: 0.3 });
+    document.querySelectorAll('.count-up').forEach(el => countObserver.observe(el));
 
     // Scroll progress bar
     window.addEventListener('scroll', () => {
@@ -1436,6 +2136,136 @@
         navLinks.classList.remove('open');
       });
     });
+
+    // Typewriter effect on hero tagline
+    (function() {
+      const text = 'Jarvis manages your priorities, executes your tasks, reads your emails, runs your calendar \u2014 and gets smarter every single day.';
+      const el = document.getElementById('typewriter');
+      let i = 0;
+      function type() {
+        if (i < text.length) {
+          el.textContent += text.charAt(i);
+          i++;
+          setTimeout(type, 35 + Math.random() * 25);
+        }
+      }
+      // Start after a short delay for the fade-in to settle
+      setTimeout(type, 800);
+    })();
+
+    // Ask Jarvis Chat Widget
+    (function() {
+      const responses = [
+        "I can manage your calendar, draft emails, track projects, handle research, coordinate with your team, and autonomously execute complex multi-step tasks — all from a single conversation.",
+        "Done. I've scanned your calendar and found 3 scheduling conflicts this week. I've drafted reschedule emails for the lower-priority ones and reserved focus blocks on Tuesday and Thursday mornings. Want me to send them?",
+        "I've drafted a professional update email to your team summarizing this week's wins, next week's priorities, and action items. It's in your outbox — I'll send it at 8:45 AM for optimal open rates.",
+        "You have 4 meetings today: a 9 AM standup (15 min), an 11 AM strategy review with the board (1 hr), a 2 PM 1:1 with your CTO, and a 4:30 PM investor call. I've prepped briefing notes for each.",
+        "I've analyzed your last 30 days of task data. Your peak productivity is Tuesday–Thursday, 9–11 AM. I recommend blocking those windows for deep work. Want me to auto-protect them going forward?",
+        "I just ran a competitive analysis on three companies in your space. Key insight: two of them launched AI features last quarter. I've compiled a briefing doc with screenshots and pricing comparisons. Sending it now.",
+        "Your inbox had 47 unread emails. I've triaged them: 3 need your personal reply (flagged), 12 are FYI-only (archived), and 32 are noise (filtered). Your reply drafts are ready — just review and send.",
+        "I've created a project plan for the Q2 product launch with milestones, dependencies, and owner assignments based on your team's current bandwidth. It's live in your dashboard."
+      ];
+      let responseIndex = 0;
+      let isProcessing = false;
+
+      const messagesEl = document.getElementById('chat-messages');
+      const inputEl = document.getElementById('chat-input');
+      const sendBtn = document.getElementById('chat-send');
+      const suggestionsEl = document.getElementById('chat-suggestions');
+
+      function addMessage(text, sender) {
+        const msg = document.createElement('div');
+        msg.className = 'chat-msg ' + sender;
+        const label = sender === 'jarvis' ? 'Jarvis' : 'You';
+        msg.innerHTML = '<span class="msg-label">' + label + '</span>' + text;
+        messagesEl.appendChild(msg);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return msg;
+      }
+
+      function showThinking() {
+        const msg = document.createElement('div');
+        msg.className = 'chat-msg jarvis';
+        msg.id = 'thinking-msg';
+        msg.innerHTML = '<span class="msg-label">Jarvis</span><div class="thinking-dots"><span></span><span></span><span></span></div>';
+        messagesEl.appendChild(msg);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        return msg;
+      }
+
+      function typeResponse(text, container) {
+        return new Promise(function(resolve) {
+          container.innerHTML = '<span class="msg-label">Jarvis</span>';
+          const textSpan = document.createElement('span');
+          const cursor = document.createElement('span');
+          cursor.className = 'chat-typing-cursor';
+          container.appendChild(textSpan);
+          container.appendChild(cursor);
+          let i = 0;
+          function typeChar() {
+            if (i < text.length) {
+              textSpan.textContent += text.charAt(i);
+              i++;
+              messagesEl.scrollTop = messagesEl.scrollHeight;
+              setTimeout(typeChar, 18 + Math.random() * 12);
+            } else {
+              cursor.remove();
+              resolve();
+            }
+          }
+          typeChar();
+        });
+      }
+
+      function sendMessage(text) {
+        if (isProcessing || !text.trim()) return;
+        isProcessing = true;
+        sendBtn.disabled = true;
+        inputEl.value = '';
+
+        // Hide suggestions after first use
+        if (suggestionsEl.style.display !== 'none') {
+          suggestionsEl.style.display = 'none';
+        }
+
+        addMessage(text.trim(), 'user');
+
+        // Show thinking with 300ms delay
+        setTimeout(function() {
+          const thinkingMsg = showThinking();
+
+          // Replace thinking with typed response after 800-1200ms
+          const thinkTime = 800 + Math.random() * 400;
+          setTimeout(function() {
+            const response = responses[responseIndex % responses.length];
+            responseIndex++;
+            typeResponse(response, thinkingMsg).then(function() {
+              isProcessing = false;
+              sendBtn.disabled = false;
+              inputEl.focus();
+            });
+          }, thinkTime);
+        }, 300);
+      }
+
+      sendBtn.addEventListener('click', function() {
+        sendMessage(inputEl.value);
+      });
+
+      inputEl.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage(inputEl.value);
+        }
+      });
+
+      // Suggestion buttons
+      suggestionsEl.querySelectorAll('.chat-suggestion').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          sendMessage(btn.getAttribute('data-q'));
+        });
+      });
+    })();
 
     // Smooth nav background on scroll
     const nav = document.querySelector('nav');
