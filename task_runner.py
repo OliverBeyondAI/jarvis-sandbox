@@ -16,10 +16,10 @@ Usage:
     # Archive a completed/cancelled/failed task
     close_task(table, "task-abc123")
 
-    # List active tasks (default: queued, running, completed only)
+    # List active tasks (auto-refreshes PR statuses, hides merged/closed PRs)
     tasks = list_tasks(table)
 
-    # List all tasks including archived and closed
+    # List all tasks including archived and merged/closed PRs
     tasks = list_tasks(table, include_closed=True)
 
     # Filter by a specific status
@@ -29,6 +29,12 @@ Usage:
 import logging
 import os
 from datetime import datetime, timezone
+
+from pr_status_checker import (
+    check_and_update_pr_statuses,
+    PR_STATUS_MERGED,
+    PR_STATUS_CLOSED,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -180,15 +186,19 @@ def list_tasks(
     List tasks from DynamoDB with sensible defaults for an active task view.
 
     Default behavior:
-        Only returns tasks with status in {queued, running, completed}.
-        This hides failed, cancelled, and archived tasks — keeping the
-        default view focused on work that still needs attention.
+        - Automatically refreshes PR statuses for completed tasks via the
+          GitHub API (so filtering is never based on stale data).
+        - Only returns tasks with status in {queued, running, completed}.
+        - For completed tasks, hides those whose PR has been merged or closed
+          (they need no further action).
+        This keeps the default view focused on work that still needs attention.
 
     Args:
         table: boto3 DynamoDB Table resource for jarvis-tasks.
-        include_closed: If True, return ALL tasks regardless of status,
-                        including archived, failed, and cancelled tasks.
-                        Useful for dashboards or auditing.
+        include_closed: If True, return ALL tasks regardless of status or
+                        PR state. Includes archived, failed, cancelled tasks
+                        and tasks with merged/closed PRs. Useful for
+                        dashboards or auditing.
         status: Optional single-status filter (e.g., "running", "archived").
                 When set, only tasks matching this exact status are returned.
                 Setting status="archived" bypasses the default filter so
@@ -197,6 +207,15 @@ def list_tasks(
     Returns:
         List of task dicts sorted by created_at descending.
     """
+    # Refresh PR statuses before filtering so we never act on stale data.
+    # This is a no-op for tasks whose PR is already in a terminal state
+    # (merged/closed) — only open/unknown PRs are re-checked.
+    if not include_closed:
+        try:
+            check_and_update_pr_statuses(table)
+        except Exception as e:
+            logger.warning(f"PR status refresh failed (listing with cached data): {e}")
+
     try:
         scan_kwargs = {}
 
@@ -218,14 +237,18 @@ def list_tasks(
         logger.error(f"Failed to scan tasks table: {e}")
         return []
 
-    # Apply default visibility filter:
-    # - If a specific status was requested, the DynamoDB filter already handled it.
-    # - If include_closed is True, return everything.
-    # - Otherwise, restrict to DEFAULT_VISIBLE_STATUSES (queued/running/completed).
+    # Apply default visibility filters when no explicit overrides are set.
     if not status and not include_closed:
+        # Only show queued/running/completed tasks
         tasks = [
             t for t in tasks
             if t.get("status") in DEFAULT_VISIBLE_STATUSES
+        ]
+        # For completed tasks, hide those with merged/closed PRs
+        # (they need no further action). Tasks with open PRs or no PR are kept.
+        tasks = [
+            t for t in tasks
+            if t.get("pr_status") not in (PR_STATUS_MERGED, PR_STATUS_CLOSED)
         ]
 
     tasks.sort(key=lambda t: t.get("created_at", ""), reverse=True)
@@ -320,8 +343,12 @@ if __name__ == "__main__":
             for t in tasks:
                 status_str = t.get("status", "?")
                 desc = t.get("description", "")[:60]
-                archived_at = t.get("archived_at", "")
-                extra = f"  (archived: {archived_at})" if status_str == TASK_STATUS_ARCHIVED else ""
+                pr_status = t.get("pr_status", "")
+                extra = ""
+                if status_str == TASK_STATUS_ARCHIVED:
+                    extra = f"  (archived: {t.get('archived_at', '')})"
+                elif pr_status:
+                    extra = f"  (pr: {pr_status})"
                 print(f"  {t['task_id']}  [{status_str}]  {desc}{extra}")
             print(f"\nTotal: {len(tasks)} task(s)")
 
