@@ -3,90 +3,161 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BeyondAI — AI Chief of Staff as a Service</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23a29bfe'/%3E%3Cstop offset='100%25' stop-color='%2300cec9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%230a0a0f'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='800' font-size='36' fill='url(%23g)'%3EB%3C/text%3E%3C/svg%3E">
+  <title>JARVIS — Your AI Chief of Staff. From the Future.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2300F5FF'/%3E%3Cstop offset='100%25' stop-color='%237B2FFF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='%23050510'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-family='system-ui,sans-serif' font-weight='800' font-size='28' fill='url(%23g)'%3EJ%3C/text%3E%3C/svg%3E">
   <style>
+    /* ===== CSS Variables ===== */
     :root {
-      --color-bg: #0a0a0f;
-      --color-surface: #12121a;
-      --color-border: rgba(255, 255, 255, 0.06);
-      --color-text: #e8e8ed;
-      --color-text-muted: #8a8a9a;
-      --color-primary: #6c5ce7;
-      --color-primary-light: #a29bfe;
-      --color-primary-glow: rgba(108, 92, 231, 0.3);
-      --color-accent: #00cec9;
-      --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-      --max-width: 1120px;
-      --radius: 12px;
-      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --black: #000000;
+      --deep: #050510;
+      --cyan: #00F5FF;
+      --violet: #7B2FFF;
+      --gold: #FFD700;
+      --white: #f0f0f5;
+      --muted: #8a8a9a;
+      --surface: rgba(255, 255, 255, 0.04);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-bg: rgba(5, 5, 16, 0.6);
+      --font-heading: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --max-width: 1200px;
+      --radius: 16px;
+      --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
+    /* ===== Reset ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: var(--font-sans);
-      background: var(--color-bg);
-      color: var(--color-text);
+      font-family: var(--font-body);
+      background: var(--black);
+      color: var(--white);
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
+    h1, h2, h3, h4 { font-family: var(--font-heading); }
+    a { text-decoration: none; color: inherit; }
 
-    /* Nav */
+    /* ===== Aurora Animated Background ===== */
+    .aurora {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      background: var(--black);
+    }
+    .aurora::before, .aurora::after {
+      content: '';
+      position: absolute;
+      width: 120vw;
+      height: 120vw;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.15;
+      animation: auroraMove 20s ease-in-out infinite alternate;
+    }
+    .aurora::before {
+      background: radial-gradient(circle, var(--cyan), transparent 70%);
+      top: -40%;
+      left: -20%;
+    }
+    .aurora::after {
+      background: radial-gradient(circle, var(--violet), transparent 70%);
+      bottom: -40%;
+      right: -20%;
+      animation-delay: -10s;
+      animation-direction: alternate-reverse;
+    }
+    @keyframes auroraMove {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(5%, 8%) scale(1.1); }
+      100% { transform: translate(-3%, -5%) scale(0.95); }
+    }
+
+    /* ===== Sticky Glass Nav ===== */
     nav {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      z-index: 100;
-      padding: 1.25rem 2rem;
+      z-index: 1000;
+      padding: 1rem 2rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(10, 10, 15, 0.8);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--color-border);
+      background: rgba(5, 5, 16, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--glass-border);
+      transition: var(--transition);
     }
-
     .logo {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--color-text);
+      font-family: var(--font-heading);
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
-
-    .logo span {
-      color: var(--color-primary-light);
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan), 0 0 24px var(--cyan);
+      animation: pulse 2s ease-in-out infinite;
     }
-
-    .nav-cta {
-      padding: 0.5rem 1.25rem;
-      border-radius: 8px;
-      border: 1px solid var(--color-primary);
-      background: transparent;
-      color: var(--color-primary-light);
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      list-style: none;
+    }
+    .nav-links a {
       font-size: 0.875rem;
       font-weight: 500;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+    .nav-cta {
+      padding: 0.55rem 1.5rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      font-family: var(--font-heading);
+      background: transparent;
+      color: #fff;
+      border: 2px solid transparent;
+      background-image: linear-gradient(var(--deep), var(--deep)), linear-gradient(135deg, var(--cyan), var(--violet));
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
       cursor: pointer;
       transition: var(--transition);
-      text-decoration: none;
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.15), 0 0 40px rgba(123, 47, 255, 0.1);
     }
-
     .nav-cta:hover {
-      background: var(--color-primary);
-      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.3), 0 0 60px rgba(123, 47, 255, 0.2);
     }
 
-    /* Hero */
+    /* ===== Scroll Fade-in ===== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ===== Hero ===== */
     .hero {
       min-height: 100vh;
       display: flex;
@@ -95,300 +166,469 @@
       text-align: center;
       padding: 8rem 2rem 6rem;
       position: relative;
-      background: url('hero-image.png') center center / cover no-repeat;
+      overflow: hidden;
+      background: url('hero-bg.jpg') center center / cover no-repeat;
     }
-
     .hero::before {
       content: '';
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(ellipse at center, rgba(10, 10, 15, 0.45) 0%, rgba(10, 10, 15, 0.75) 60%, rgba(10, 10, 15, 0.92) 100%),
-        linear-gradient(to bottom, rgba(10, 10, 15, 0.6) 0%, transparent 30%, transparent 70%, rgba(10, 10, 15, 0.9) 100%);
-      pointer-events: none;
-    }
-
-    .hero-content {
-      max-width: 760px;
-      position: relative;
+        radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.3) 0%, rgba(5,5,16,0.7) 60%, rgba(0,0,0,0.95) 100%),
+        linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.95) 100%);
       z-index: 1;
     }
-
+    #particles-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 3;
+      max-width: 800px;
+    }
     .badge {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.4rem 1.1rem;
+      padding: 0.5rem 1.25rem;
       border-radius: 100px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: rgba(18, 18, 26, 0.7);
+      background: rgba(5, 5, 16, 0.6);
       backdrop-filter: blur(12px);
+      border: 1px solid rgba(0, 245, 255, 0.2);
       font-size: 0.8rem;
-      color: var(--color-text-muted);
-      margin-bottom: 2rem;
-      letter-spacing: 0.04em;
+      font-weight: 500;
+      color: var(--cyan);
+      letter-spacing: 0.06em;
       text-transform: uppercase;
+      margin-bottom: 2rem;
     }
-
     .badge::before {
       content: '';
-      width: 6px;
-      height: 6px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--color-accent);
-      box-shadow: 0 0 8px var(--color-accent);
+      background: var(--cyan);
+      box-shadow: 0 0 12px var(--cyan), 0 0 24px var(--cyan);
+      animation: pulse 2s ease-in-out infinite;
     }
-
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.8); }
+    }
     h1 {
-      font-size: clamp(2.75rem, 6.5vw, 4.5rem);
+      font-size: clamp(3rem, 7vw, 5.5rem);
       font-weight: 800;
-      line-height: 1.08;
-      letter-spacing: -0.035em;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
       margin-bottom: 1.5rem;
-      text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
     }
-
-    h1 .gradient {
-      background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-accent) 100%);
+    .gradient-text {
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--violet) 50%, var(--gold) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
-
     .hero p {
       font-size: clamp(1.05rem, 2vw, 1.25rem);
-      color: rgba(232, 232, 237, 0.8);
-      max-width: 540px;
+      color: rgba(240, 240, 245, 0.75);
+      max-width: 600px;
       margin: 0 auto 2.75rem;
       line-height: 1.7;
-      text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3);
     }
-
     .cta-group {
       display: flex;
       gap: 1rem;
       justify-content: center;
       flex-wrap: wrap;
     }
-
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      padding: 0.9rem 2.25rem;
-      border-radius: var(--radius);
+      padding: 0.95rem 2.5rem;
+      border-radius: 12px;
       font-size: 1rem;
       font-weight: 600;
+      font-family: var(--font-heading);
       cursor: pointer;
       transition: var(--transition);
-      text-decoration: none;
       border: none;
     }
-
     .btn-primary {
-      background: linear-gradient(135deg, var(--color-primary) 0%, #5a4bd1 100%);
-      color: #fff;
-      box-shadow: 0 4px 24px var(--color-primary-glow), 0 1px 3px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.9), rgba(0, 200, 220, 1));
+      color: #050510;
+      box-shadow: 0 4px 30px rgba(0, 245, 255, 0.35), 0 0 60px rgba(0, 245, 255, 0.15);
     }
-
     .btn-primary:hover {
-      background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary) 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 8px 40px var(--color-primary-glow), 0 2px 6px rgba(0, 0, 0, 0.2);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 50px rgba(0, 245, 255, 0.5), 0 0 80px rgba(0, 245, 255, 0.25);
     }
-
     .btn-secondary {
-      background: rgba(18, 18, 26, 0.6);
+      background: rgba(255, 255, 255, 0.04);
       backdrop-filter: blur(12px);
-      color: var(--color-text);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--white);
+      border: 1px solid var(--glass-border);
     }
-
     .btn-secondary:hover {
-      border-color: var(--color-primary);
-      color: var(--color-primary-light);
-      transform: translateY(-2px);
-      background: rgba(18, 18, 26, 0.8);
+      border-color: var(--cyan);
+      color: var(--cyan);
+      transform: translateY(-3px);
+      box-shadow: 0 0 30px rgba(0, 245, 255, 0.1);
     }
 
-    /* Features */
-    .features {
-      padding: 6rem 2rem;
-      max-width: var(--max-width);
-      margin: 0 auto;
+    /* ===== Scroll Indicator ===== */
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      animation: scrollBounce 2s ease-in-out infinite;
+    }
+    .scroll-indicator span {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+    }
+    .scroll-mouse {
+      width: 24px;
+      height: 38px;
+      border-radius: 12px;
+      border: 2px solid rgba(255,255,255,0.25);
+      position: relative;
+    }
+    .scroll-mouse::before {
+      content: '';
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 4px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--cyan);
+      animation: scrollDot 2s ease-in-out infinite;
+    }
+    @keyframes scrollBounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(8px); }
+    }
+    @keyframes scrollDot {
+      0%, 100% { opacity: 1; top: 6px; }
+      50% { opacity: 0.3; top: 18px; }
     }
 
-    .features-header {
+    /* ===== Stats Ticker ===== */
+    .ticker-wrap {
+      overflow: hidden;
+      padding: 1.5rem 0;
+      border-top: 1px solid var(--glass-border);
+      border-bottom: 1px solid var(--glass-border);
+      background: rgba(5, 5, 16, 0.8);
+      backdrop-filter: blur(12px);
+    }
+    .ticker {
+      display: flex;
+      gap: 4rem;
+      animation: tickerScroll 30s linear infinite;
+      width: max-content;
+    }
+    .ticker-item {
+      white-space: nowrap;
+      font-size: 0.9rem;
+      color: var(--cyan);
+      text-shadow: 0 0 10px rgba(0, 245, 255, 0.3);
+    }
+    @keyframes tickerScroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ===== Section Headings ===== */
+    .section-header {
       text-align: center;
       margin-bottom: 4rem;
     }
-
-    .features-header h2 {
-      font-size: clamp(1.75rem, 4vw, 2.5rem);
+    .section-label {
+      font-family: var(--font-heading);
+      font-size: 0.8rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--cyan);
+      text-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
       margin-bottom: 1rem;
     }
-
-    .features-header p {
-      color: var(--color-text-muted);
-      max-width: 480px;
+    .section-header h2 {
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+    }
+    .section-header p {
+      color: var(--muted);
+      max-width: 500px;
       margin: 0 auto;
+      font-size: 1.05rem;
     }
 
+    /* ===== Glassmorphism Feature Cards ===== */
+    .features {
+      padding: 7rem 2rem;
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
     .features-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
     }
-
     .feature-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
+      position: relative;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius);
-      padding: 2rem;
+      padding: 2.25rem;
       transition: var(--transition);
+      overflow: hidden;
     }
-
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: var(--radius);
+      padding: 1px;
+      background: linear-gradient(135deg, transparent 40%, var(--cyan) 50%, var(--violet) 60%, transparent 70%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .feature-card:hover::before { opacity: 1; }
     .feature-card:hover {
-      border-color: var(--color-primary);
-      transform: translateY(-4px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 245, 255, 0.05);
     }
-
     .feature-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
+      font-size: 2rem;
       margin-bottom: 1.25rem;
-      background: rgba(108, 92, 231, 0.1);
-      border: 1px solid rgba(108, 92, 231, 0.2);
     }
-
     .feature-card h3 {
-      font-size: 1.125rem;
+      font-size: 1.15rem;
       font-weight: 600;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.6rem;
     }
-
     .feature-card p {
-      color: var(--color-text-muted);
+      color: var(--muted);
       font-size: 0.925rem;
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
-    /* Social proof */
-    .social-proof {
-      padding: 4rem 2rem;
-      text-align: center;
-      border-top: 1px solid var(--color-border);
-      border-bottom: 1px solid var(--color-border);
+    /* ===== How It Works Timeline ===== */
+    .how-it-works {
+      padding: 7rem 2rem;
+      max-width: 900px;
+      margin: 0 auto;
     }
-
-    .social-proof p {
-      color: var(--color-text-muted);
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      margin-bottom: 2rem;
+    .timeline {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
     }
-
-    .logos {
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 28px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--cyan), var(--violet), var(--gold));
+      opacity: 0.3;
+      animation: lineGlow 3s ease-in-out infinite alternate;
+    }
+    @keyframes lineGlow {
+      0% { opacity: 0.2; box-shadow: none; }
+      100% { opacity: 0.5; filter: drop-shadow(0 0 6px rgba(0, 245, 255, 0.4)); }
+    }
+    .timeline-step {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      position: relative;
+    }
+    .step-number {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 3rem;
-      flex-wrap: wrap;
-      opacity: 0.4;
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      border: 2px solid var(--glass-border);
+      position: relative;
+      z-index: 1;
     }
-
-    .logos span {
+    .step-number.cyan {
+      border-color: rgba(0, 245, 255, 0.4);
+      color: var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.15), 0 0 40px rgba(0, 245, 255, 0.05);
+      background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(123, 47, 255, 0.05));
+    }
+    .step-number.violet {
+      border-color: rgba(123, 47, 255, 0.4);
+      color: var(--violet);
+      box-shadow: 0 0 20px rgba(123, 47, 255, 0.15), 0 0 40px rgba(123, 47, 255, 0.05);
+      background: linear-gradient(135deg, rgba(123, 47, 255, 0.1), rgba(0, 245, 255, 0.05));
+    }
+    .step-number.gold {
+      border-color: rgba(255, 215, 0, 0.4);
+      color: var(--gold);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.15), 0 0 40px rgba(255, 215, 0, 0.05);
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(123, 47, 255, 0.05));
+    }
+    .step-content {
+      padding-top: 0.5rem;
+    }
+    .step-content h3 {
       font-size: 1.25rem;
       font-weight: 700;
-      letter-spacing: -0.01em;
-      color: var(--color-text);
+      margin-bottom: 0.5rem;
+    }
+    .step-content p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      max-width: 500px;
     }
 
-    /* Testimonials */
-    .testimonials {
-      padding: 6rem 2rem;
+    /* ===== Dashboard Preview ===== */
+    .dashboard-section {
+      padding: 7rem 2rem;
       max-width: var(--max-width);
       margin: 0 auto;
     }
-
-    .testimonials-header {
-      text-align: center;
-      margin-bottom: 4rem;
+    .browser-frame {
+      position: relative;
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), 0 0 80px rgba(123, 47, 255, 0.08), 0 0 120px rgba(0, 245, 255, 0.04);
+    }
+    .browser-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 1rem 1.25rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .browser-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .browser-dot.red { background: #ff5f57; }
+    .browser-dot.yellow { background: #febc2e; }
+    .browser-dot.green { background: #28c840; }
+    .browser-url {
+      margin-left: 1rem;
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      font-size: 0.8rem;
+      color: var(--muted);
+      flex: 1;
+      max-width: 360px;
+    }
+    .browser-frame img {
+      width: 100%;
+      display: block;
     }
 
-    .testimonials-header h2 {
-      font-size: clamp(1.75rem, 4vw, 2.5rem);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 1rem;
-    }
-
-    .testimonials-header p {
-      color: var(--color-text-muted);
-      max-width: 480px;
+    /* ===== Testimonials ===== */
+    .testimonials {
+      padding: 7rem 2rem;
+      max-width: var(--max-width);
       margin: 0 auto;
     }
-
     .testimonials-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 1.5rem;
     }
-
     .testimonial-card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
       border-radius: var(--radius);
-      padding: 2rem;
+      padding: 2.25rem;
       transition: var(--transition);
       display: flex;
       flex-direction: column;
+      position: relative;
+      overflow: hidden;
     }
-
+    .testimonial-card::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: var(--radius);
+      padding: 1px;
+      background: linear-gradient(135deg, transparent 40%, var(--cyan) 50%, var(--violet) 60%, transparent 70%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .testimonial-card:hover::before { opacity: 1; }
     .testimonial-card:hover {
-      border-color: var(--color-primary);
-      transform: translateY(-4px);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     }
-
+    .testimonial-stars {
+      color: var(--gold);
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      margin-bottom: 1rem;
+    }
     .testimonial-quote {
-      color: var(--color-text);
-      font-size: 0.975rem;
-      line-height: 1.7;
+      color: rgba(240, 240, 245, 0.85);
+      font-size: 0.95rem;
+      line-height: 1.75;
       margin-bottom: 1.5rem;
       flex: 1;
+      font-style: italic;
     }
-
-    .testimonial-quote::before {
-      content: '\201C';
-      display: block;
-      font-size: 2.5rem;
-      line-height: 1;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--color-primary-light), var(--color-accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
     .testimonial-author {
       display: flex;
       align-items: center;
       gap: 0.75rem;
     }
-
     .testimonial-avatar {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -398,214 +638,817 @@
       color: #fff;
       flex-shrink: 0;
     }
-
     .testimonial-name {
-      font-size: 0.9rem;
+      font-family: var(--font-heading);
+      font-size: 0.95rem;
       font-weight: 600;
-      color: var(--color-text);
     }
-
     .testimonial-role {
       font-size: 0.8rem;
-      color: var(--color-text-muted);
+      color: var(--muted);
     }
 
-    /* CTA Section */
-    .cta-section {
+    /* ===== Pricing ===== */
+    .pricing {
+      padding: 7rem 2rem;
+      max-width: var(--max-width);
+      margin: 0 auto;
+    }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      align-items: start;
+    }
+    .pricing-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .pricing-card.featured {
+      border-color: rgba(123, 47, 255, 0.4);
+      box-shadow: 0 0 60px rgba(123, 47, 255, 0.1), 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+    .pricing-card.featured::after {
+      content: 'Most Popular';
+      position: absolute;
+      top: 1.25rem;
+      right: -2rem;
+      padding: 0.3rem 2.5rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: var(--font-heading);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #fff;
+      background: linear-gradient(135deg, var(--violet), var(--cyan));
+      transform: rotate(45deg);
+    }
+    .pricing-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+    .pricing-tier {
+      font-family: var(--font-heading);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 0.75rem;
+    }
+    .pricing-price {
+      font-family: var(--font-heading);
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+    }
+    .pricing-price span {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .pricing-desc {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+    .pricing-features {
+      list-style: none;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .pricing-features li {
+      font-size: 0.9rem;
+      color: rgba(240, 240, 245, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .pricing-features li::before {
+      content: '';
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(0, 245, 255, 0.1);
+      border: 1px solid rgba(0, 245, 255, 0.3);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='8' fill='none'%3E%3Cpath d='M1 4l3 3 5-6' stroke='%2300F5FF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .pricing-fine-print {
+      text-align: center;
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .btn-pricing {
+      width: 100%;
+      justify-content: center;
+      padding: 0.85rem;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: var(--font-heading);
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+      display: block;
+    }
+    .btn-pricing.outline {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--white);
+    }
+    .btn-pricing.outline:hover {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
+    }
+    .btn-pricing.filled {
+      background: linear-gradient(135deg, var(--violet), var(--cyan));
+      border: none;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(123, 47, 255, 0.3);
+    }
+    .btn-pricing.filled:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(123, 47, 255, 0.4);
+    }
+
+    /* ===== Final CTA ===== */
+    .final-cta {
       padding: 8rem 2rem;
       text-align: center;
       position: relative;
+      overflow: hidden;
     }
-
-    .cta-section::before {
+    .final-cta::before {
       content: '';
       position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 500px;
-      height: 500px;
-      background: radial-gradient(circle, rgba(0, 206, 201, 0.12) 0%, transparent 70%);
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 50%, rgba(0, 245, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 50%, rgba(123, 47, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 50%);
+      animation: ctaAurora 12s ease-in-out infinite alternate;
       pointer-events: none;
     }
-
-    .cta-section h2 {
-      font-size: clamp(1.75rem, 4vw, 2.75rem);
-      font-weight: 700;
-      letter-spacing: -0.02em;
+    @keyframes ctaAurora {
+      0% { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 1; transform: scale(1.1); }
+    }
+    .final-cta h2 {
+      font-size: clamp(2.5rem, 5vw, 3.75rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
       margin-bottom: 1rem;
       position: relative;
     }
-
-    .cta-section p {
-      color: var(--color-text-muted);
-      margin-bottom: 2.5rem;
-      font-size: 1.1rem;
+    .final-cta .sub-text {
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-size: 1.15rem;
       position: relative;
     }
-
-    /* Footer */
-    footer {
-      padding: 2rem;
-      text-align: center;
-      border-top: 1px solid var(--color-border);
-      color: var(--color-text-muted);
-      font-size: 0.825rem;
+    .final-cta .btn { position: relative; }
+    .spots-counter {
+      position: relative;
+      margin-top: 2rem;
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      color: var(--cyan);
+      text-shadow: 0 0 15px rgba(0, 245, 255, 0.3);
+    }
+    .spots-counter .count {
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+    .spots-bar {
+      width: 200px;
+      height: 4px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin: 0.75rem auto 0;
+      overflow: hidden;
+    }
+    .spots-bar-fill {
+      width: 67%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--violet));
+      border-radius: 2px;
+      box-shadow: 0 0 10px rgba(0, 245, 255, 0.4);
     }
 
-    /* Responsive */
+    /* ===== Footer ===== */
+    footer {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid var(--glass-border);
+    }
+    .footer-inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .footer-tagline {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: -0.5rem;
+    }
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 0.85rem;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--cyan); }
+    .footer-copy {
+      font-size: 0.825rem;
+      color: var(--muted);
+    }
+
+    /* ===== Floating Card Animation ===== */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .floating { animation: float 6s ease-in-out infinite; }
+    .floating:nth-child(2) { animation-delay: -1s; }
+    .floating:nth-child(3) { animation-delay: -2s; }
+    .floating:nth-child(4) { animation-delay: -3s; }
+    .floating:nth-child(5) { animation-delay: -4s; }
+    .floating:nth-child(6) { animation-delay: -5s; }
+
+    /* ===== Staggered Fade-in ===== */
+    .fade-in[data-delay="1"] { transition-delay: 0.1s; }
+    .fade-in[data-delay="2"] { transition-delay: 0.2s; }
+    .fade-in[data-delay="3"] { transition-delay: 0.3s; }
+    .fade-in[data-delay="4"] { transition-delay: 0.4s; }
+    .fade-in[data-delay="5"] { transition-delay: 0.5s; }
+
+    /* ===== Animated Gradient Text ===== */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .gradient-text {
+      background-size: 200% 200%;
+      animation: gradientShift 4s ease-in-out infinite;
+    }
+
+    /* ===== Scroll Progress Bar ===== */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--cyan), var(--violet), var(--gold));
+      z-index: 1001;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* ===== Noise Overlay ===== */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+
+    /* ===== Button Shimmer ===== */
+    .btn-primary {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 40%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transform: skewX(-20deg);
+      animation: shimmer 3s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0% { left: -60%; }
+      100% { left: 120%; }
+    }
+
+    /* ===== Cursor Glow ===== */
+    .cursor-glow {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 245, 255, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.3s;
+      will-change: transform;
+    }
+
+    /* ===== Mobile Hamburger ===== */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+      z-index: 1002;
+    }
+    .hamburger span {
+      width: 24px;
+      height: 2px;
+      background: var(--white);
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+    .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    /* ===== Enhanced Card Glow on Hover ===== */
+    .feature-card::after,
+    .testimonial-card::after,
+    .pricing-card:not(.featured)::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 245, 255, 0.06) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .feature-card:hover::after,
+    .testimonial-card:hover::after,
+    .pricing-card:not(.featured):hover::after {
+      opacity: 1;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) {
+      .features-grid, .testimonials-grid, .pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
     @media (max-width: 768px) {
-      nav {
-        padding: 1rem 1.25rem;
-      }
-
-      .hero {
-        padding: 7rem 1.25rem 4rem;
-      }
-
-      .features {
-        padding: 4rem 1.25rem;
-      }
-
-      .cta-group {
+      nav { padding: 0.9rem 1.25rem; }
+      .hamburger { display: flex; }
+      .nav-links {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(5, 5, 16, 0.95);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         flex-direction: column;
         align-items: center;
-      }
-
-      .btn {
-        width: 100%;
-        max-width: 320px;
         justify-content: center;
+        gap: 2.5rem;
+        z-index: 1001;
       }
-
-      .logos {
-        gap: 2rem;
+      .nav-links.open {
+        display: flex;
       }
-
-      .features-grid {
+      .nav-links a {
+        font-size: 1.25rem;
+        color: var(--white);
+      }
+      .hero { padding: 7rem 1.25rem 4rem; }
+      .cta-group { flex-direction: column; align-items: center; }
+      .btn { width: 100%; max-width: 320px; justify-content: center; }
+      .features, .how-it-works, .dashboard-section, .testimonials, .pricing { padding: 5rem 1.25rem; }
+      .features-grid, .testimonials-grid, .pricing-grid {
         grid-template-columns: 1fr;
       }
-
-      .testimonials {
-        padding: 4rem 1.25rem;
-      }
-
-      .testimonials-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .cta-section {
-        padding: 5rem 1.25rem;
-      }
+      .timeline::before { left: 23px; }
+      .step-number { width: 46px; height: 46px; font-size: 1rem; }
+      .final-cta { padding: 5rem 1.25rem; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; flex-wrap: wrap; }
+      .cursor-glow { display: none; }
+      .scroll-indicator { display: none; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Scroll Progress -->
+  <div class="scroll-progress" id="scroll-progress"></div>
+
+  <!-- Cursor Glow -->
+  <div class="cursor-glow" id="cursor-glow"></div>
+
+  <!-- Aurora Background -->
+  <div class="aurora"></div>
+
+  <!-- Nav -->
   <nav>
-    <div class="logo">Beyond<span>AI</span></div>
-    <a href="#get-started" class="nav-cta">Get Started</a>
+    <div class="logo">JARVIS <div class="logo-dot"></div></div>
+    <ul class="nav-links" id="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#testimonials">Testimonials</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+    </ul>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <a href="#get-started" class="nav-cta">Request Access</a>
   </nav>
 
+  <!-- Hero -->
   <section class="hero">
-    <div class="hero-content">
-      <div class="badge">Now Available</div>
+    <canvas id="particles-canvas"></canvas>
+    <div class="hero-content fade-in">
+      <div class="badge">From the Future</div>
       <h1>
-        <span class="gradient">AI Chief of Staff</span><br>as a Service
+        <span class="gradient-text">Your AI Chief of Staff.</span><br>From the Future.
       </h1>
       <p>
-        Your AI-powered executive assistant that manages priorities, streamlines decisions, and keeps your leadership team aligned — so you can focus on what matters most.
+        Jarvis manages your priorities, executes your tasks, reads your emails, runs your calendar — and gets smarter every single day.
       </p>
       <div class="cta-group">
-        <a href="#get-started" class="btn btn-primary">Start Free Trial &rarr;</a>
-        <a href="#features" class="btn btn-secondary">See How It Works</a>
+        <a href="#get-started" class="btn btn-primary">Get Early Access &rarr;</a>
+        <a href="#how-it-works" class="btn btn-secondary">&#9654; Watch Demo</a>
       </div>
     </div>
-  </section>
-
-  <section class="social-proof">
-    <p>Trusted by forward-thinking teams</p>
-    <div class="logos">
-      <span>Acme Corp</span>
-      <span>Stratton</span>
-      <span>Meridian</span>
-      <span>Apex Labs</span>
-      <span>NovaTech</span>
+    <div class="scroll-indicator">
+      <div class="scroll-mouse"></div>
+      <span>Scroll</span>
     </div>
   </section>
 
+  <!-- Live Stats Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker">
+      <div class="ticker-item">&#9889; 847 tasks completed this week &nbsp;&middot;&nbsp; &#128231; 2,341 emails processed &nbsp;&middot;&nbsp; &#128197; 156 meetings scheduled &nbsp;&middot;&nbsp; &#129504; 99.2% task accuracy &nbsp;&middot;&nbsp; &#127758; 42 executives onboarded &nbsp;&middot;&nbsp; &#9201; Avg response time: 1.2 seconds</div>
+      <div class="ticker-item">&nbsp;&nbsp;&nbsp;&middot;&nbsp;&nbsp;&nbsp; &#9889; 847 tasks completed this week &nbsp;&middot;&nbsp; &#128231; 2,341 emails processed &nbsp;&middot;&nbsp; &#128197; 156 meetings scheduled &nbsp;&middot;&nbsp; &#129504; 99.2% task accuracy &nbsp;&middot;&nbsp; &#127758; 42 executives onboarded &nbsp;&middot;&nbsp; &#9201; Avg response time: 1.2 seconds</div>
+    </div>
+  </div>
+
+  <!-- Features (6 cards) -->
   <section class="features" id="features">
-    <div class="features-header">
-      <h2>Built different</h2>
-      <p>Three capabilities that set BeyondAI apart from everything else.</p>
+    <div class="section-header fade-in">
+      <div class="section-label">Capabilities</div>
+      <h2>Built <span class="gradient-text">Different</span></h2>
+      <p>Six capabilities that make Jarvis unlike anything else.</p>
     </div>
     <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">📞</div>
+      <div class="feature-card floating fade-in" data-delay="1">
+        <div class="feature-icon">&#127908;</div>
         <h3>Voice First</h3>
-        <p>Control your AI by phone. Call in tasks, get status updates, and make decisions — all through natural conversation, no screen required.</p>
+        <p>Call Jarvis from anywhere. Natural conversation, instant execution.</p>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">🧠</div>
+      <div class="feature-card floating fade-in" data-delay="2">
+        <div class="feature-icon">&#129504;</div>
+        <h3>Deep Memory</h3>
+        <p>Remembers every preference, decision, and relationship. Forever.</p>
+      </div>
+      <div class="feature-card floating fade-in" data-delay="3">
+        <div class="feature-icon">&#9889;</div>
+        <h3>Autonomous Execution</h3>
+        <p>Writes code, sends emails, books meetings — without being asked twice.</p>
+      </div>
+      <div class="feature-card floating fade-in" data-delay="4">
+        <div class="feature-icon">&#128274;</div>
+        <h3>Enterprise Security</h3>
+        <p>AWS-grade encryption. Your data never leaves your control.</p>
+      </div>
+      <div class="feature-card floating fade-in" data-delay="5">
+        <div class="feature-icon">&#128200;</div>
         <h3>Self Improving</h3>
-        <p>Learns from every task it completes. The more you use it, the better it understands your preferences, priorities, and working style.</p>
+        <p>Scores its own work. Learns from every task. Gets better every day.</p>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">🌙</div>
+      <div class="feature-card floating fade-in" data-delay="3">
+        <div class="feature-icon">&#127760;</div>
         <h3>Always On</h3>
-        <p>Works while you sleep. Processes queued tasks around the clock so you wake up to progress, not a backlog.</p>
+        <p>24/7 proactive monitoring. Wakes you up to results, not problems.</p>
       </div>
     </div>
   </section>
 
+  <!-- How It Works -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-header fade-in">
+      <div class="section-label">How It Works</div>
+      <h2>Three Steps to <span class="gradient-text">the Future</span></h2>
+    </div>
+    <div class="timeline">
+      <div class="timeline-step fade-in">
+        <div class="step-number cyan">1</div>
+        <div class="step-content">
+          <h3>You Talk</h3>
+          <p>Call, text, or WhatsApp Jarvis. Natural language, no commands needed.</p>
+        </div>
+      </div>
+      <div class="timeline-step fade-in">
+        <div class="step-number violet">2</div>
+        <div class="step-content">
+          <h3>Jarvis Thinks</h3>
+          <p>Accesses your full knowledge graph — projects, contacts, priorities, history.</p>
+        </div>
+      </div>
+      <div class="timeline-step fade-in">
+        <div class="step-number gold">3</div>
+        <div class="step-content">
+          <h3>It Gets Done</h3>
+          <p>Tasks execute autonomously. You get a WhatsApp with results and a live link.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard Preview -->
+  <section class="dashboard-section" id="dashboard">
+    <div class="section-header fade-in">
+      <div class="section-label">Live Preview</div>
+      <h2>The Jarvis <span class="gradient-text">Command Center</span></h2>
+    </div>
+    <div class="browser-frame fade-in">
+      <div class="browser-bar">
+        <div class="browser-dot red"></div>
+        <div class="browser-dot yellow"></div>
+        <div class="browser-dot green"></div>
+        <div class="browser-url">app.jarvis.ai/command-center</div>
+      </div>
+      <img src="dashboard-preview.jpg" alt="The Jarvis Command Center — Live Preview" loading="lazy">
+    </div>
+  </section>
+
+  <!-- Testimonials -->
   <section class="testimonials" id="testimonials">
-    <div class="testimonials-header">
-      <h2>Trusted by leaders</h2>
-      <p>Hear from executives who transformed how they work with BeyondAI.</p>
+    <div class="section-header fade-in">
+      <h2>Trusted by <span class="gradient-text">Leaders</span></h2>
+      <p>Hear from executives who transformed how they work.</p>
     </div>
     <div class="testimonials-grid">
-      <div class="testimonial-card">
-        <div class="testimonial-quote">BeyondAI cut our quarterly planning cycle from three weeks to four days. It synthesizes input from every department head and surfaces the conflicts before we even sit down. Our board prep has never been this sharp.</div>
+      <div class="testimonial-card fade-in" data-delay="1">
+        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <div class="testimonial-quote">"Jarvis replaced my EA, my project manager, and my morning coffee ritual. I get more done by 9 AM than I used to by noon."</div>
         <div class="testimonial-author">
-          <div class="testimonial-avatar" style="background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light));">MR</div>
+          <div class="testimonial-avatar" style="background: linear-gradient(135deg, var(--violet), var(--cyan));">SK</div>
           <div>
-            <div class="testimonial-name">Margaret Reynolds</div>
-            <div class="testimonial-role">CFO, Harmon Industries</div>
+            <div class="testimonial-name">Sarah K.</div>
+            <div class="testimonial-role">CEO, Meridian Capital</div>
           </div>
         </div>
       </div>
-      <div class="testimonial-card">
-        <div class="testimonial-quote">As a solo founder wearing ten hats, I was drowning in context switching. BeyondAI triages my inbox, preps investor updates, and flags the two or three things that actually need my attention each day. It's like having a seasoned chief of staff on day one.</div>
+      <div class="testimonial-card fade-in" data-delay="2">
+        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <div class="testimonial-quote">"I called Jarvis from the airport and by the time I landed, three client proposals were drafted and sent. This is not normal software."</div>
         <div class="testimonial-author">
-          <div class="testimonial-avatar" style="background: linear-gradient(135deg, var(--color-accent), #00b894);">JT</div>
+          <div class="testimonial-avatar" style="background: linear-gradient(135deg, var(--cyan), #00b894);">MT</div>
           <div>
-            <div class="testimonial-name">James Turano</div>
-            <div class="testimonial-role">Founder & CEO, Layup Health</div>
+            <div class="testimonial-name">Marcus T.</div>
+            <div class="testimonial-role">Managing Partner, Apex Ventures</div>
           </div>
         </div>
       </div>
-      <div class="testimonial-card">
-        <div class="testimonial-quote">I manage 40 active listings and a team of twelve agents. BeyondAI keeps every deal on track — it follows up with lenders, reminds me of inspection deadlines, and drafts client updates before I even think to ask. I closed 30% more last quarter.</div>
+      <div class="testimonial-card fade-in" data-delay="3">
+        <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <div class="testimonial-quote">"The self-improving loop is what got me. It rated its own work a 6, rewrote it, and sent me a 9. No human does that."</div>
         <div class="testimonial-author">
-          <div class="testimonial-avatar" style="background: linear-gradient(135deg, #e17055, #fdcb6e);">SN</div>
+          <div class="testimonial-avatar" style="background: linear-gradient(135deg, #e17055, var(--gold));">JW</div>
           <div>
-            <div class="testimonial-name">Sofia Nguyen</div>
-            <div class="testimonial-role">Senior Broker, Pinnacle Realty Group</div>
+            <div class="testimonial-name">Dr. James W.</div>
+            <div class="testimonial-role">COO, NovaTech Systems</div>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="cta-section" id="get-started">
-    <h2>Ready to lead smarter?</h2>
-    <p>Join hundreds of executives who reclaimed their time with BeyondAI.</p>
-    <a href="#" class="btn btn-primary">Get Started Free &rarr;</a>
+  <!-- Pricing -->
+  <section class="pricing" id="pricing">
+    <div class="section-header fade-in">
+      <div class="section-label">Pricing</div>
+      <h2>Invest in Your <span class="gradient-text">Future Self</span></h2>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card fade-in">
+        <div class="pricing-tier">Executive</div>
+        <div class="pricing-price">$299 <span>/mo</span></div>
+        <div class="pricing-desc">For the individual leader ready to deploy their AI Chief of Staff.</div>
+        <ul class="pricing-features">
+          <li>1 user</li>
+          <li>500 tasks/month</li>
+          <li>Voice + WhatsApp</li>
+          <li>Email + Calendar integration</li>
+        </ul>
+        <a href="#get-started" class="btn-pricing outline">Get Started</a>
+      </div>
+      <div class="pricing-card featured fade-in">
+        <div class="pricing-tier">Director</div>
+        <div class="pricing-price">$599 <span>/mo</span></div>
+        <div class="pricing-desc">For leadership teams that demand full autonomy and scale.</div>
+        <ul class="pricing-features">
+          <li>3 users</li>
+          <li>Unlimited tasks</li>
+          <li>Full autonomy mode</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#get-started" class="btn-pricing filled">Get Started</a>
+      </div>
+      <div class="pricing-card fade-in">
+        <div class="pricing-tier">Enterprise</div>
+        <div class="pricing-price">Custom</div>
+        <div class="pricing-desc">Multi-tenant deployment with dedicated infrastructure.</div>
+        <ul class="pricing-features">
+          <li>Custom integrations</li>
+          <li>Dedicated infrastructure</li>
+          <li>White-glove onboarding</li>
+          <li>Multi-tenant deployment</li>
+        </ul>
+        <a href="#get-started" class="btn-pricing outline">Contact Sales</a>
+      </div>
+    </div>
+    <div class="pricing-fine-print fade-in">No setup fees. Cancel anytime. 30-day money-back guarantee.</div>
   </section>
 
+  <!-- Final CTA -->
+  <section class="final-cta" id="get-started">
+    <h2 class="fade-in">The future <span class="gradient-text">doesn't wait.</span></h2>
+    <p class="sub-text fade-in">Be among the first 100 executives to deploy Jarvis.</p>
+    <a href="#" class="btn btn-primary fade-in">Request Early Access &rarr;</a>
+    <div class="spots-counter fade-in">
+      <span class="count">67</span> of 100 spots claimed
+      <div class="spots-bar"><div class="spots-bar-fill"></div></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
   <footer>
-    &copy; 2026 BeyondAI. All rights reserved.
+    <div class="footer-inner">
+      <div class="logo">JARVIS <div class="logo-dot"></div></div>
+      <div class="footer-tagline">Your AI Chief of Staff. From the Future.</div>
+      <ul class="footer-links">
+        <li><a href="#">Privacy</a></li>
+        <li><a href="#">Terms</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+      <div class="footer-copy">&copy; 2026 BeyondAI. All rights reserved. Built by Jarvis, for leaders.</div>
+    </div>
   </footer>
+
+  <!-- JS: Particles + Connections + Enhanced Interactions -->
+  <script>
+    // Enhanced Particle field with connection lines
+    (function() {
+      const c = document.getElementById('particles-canvas');
+      const ctx = c.getContext('2d');
+      let w, h, particles = [];
+      const CONNECT_DIST = 120;
+      function resize() { w = c.width = c.offsetWidth; h = c.height = c.offsetHeight; }
+      resize();
+      window.addEventListener('resize', resize);
+      for (let i = 0; i < 60; i++) {
+        particles.push({
+          x: Math.random() * w, y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
+          r: Math.random() * 2 + 0.5,
+          o: Math.random() * 0.5 + 0.15,
+          color: ['#00F5FF', '#7B2FFF', '#FFD700'][Math.floor(Math.random() * 3)]
+        });
+      }
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < CONNECT_DIST) {
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = particles[i].color;
+              ctx.globalAlpha = (1 - dist / CONNECT_DIST) * 0.12;
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+        }
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.o;
+          ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // Scroll-triggered fade-in via IntersectionObserver
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+    // Scroll progress bar
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (scrollTop / docHeight) * 100;
+      document.getElementById('scroll-progress').style.width = progress + '%';
+    }, { passive: true });
+
+    // Cursor glow follow (desktop only)
+    if (window.matchMedia('(pointer: fine)').matches) {
+      const glow = document.getElementById('cursor-glow');
+      let mx = 0, my = 0, gx = 0, gy = 0;
+      document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+      function moveGlow() {
+        gx += (mx - gx) * 0.08;
+        gy += (my - gy) * 0.08;
+        glow.style.transform = `translate(${gx - 200}px, ${gy - 200}px)`;
+        requestAnimationFrame(moveGlow);
+      }
+      moveGlow();
+    }
+
+    // Card mouse tracking for glow effect
+    document.querySelectorAll('.feature-card, .testimonial-card, .pricing-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', ((e.clientX - rect.left) / rect.width * 100) + '%');
+        card.style.setProperty('--mouse-y', ((e.clientY - rect.top) / rect.height * 100) + '%');
+      });
+    });
+
+    // Mobile hamburger menu
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('nav-links');
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('active');
+      navLinks.classList.toggle('open');
+    });
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('active');
+        navLinks.classList.remove('open');
+      });
+    });
+
+    // Smooth nav background on scroll
+    const nav = document.querySelector('nav');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 80) {
+        nav.style.background = 'rgba(5, 5, 16, 0.9)';
+        nav.style.boxShadow = '0 4px 30px rgba(0, 0, 0, 0.3)';
+      } else {
+        nav.style.background = 'rgba(5, 5, 16, 0.7)';
+        nav.style.boxShadow = 'none';
+      }
+    }, { passive: true });
+  </script>
 
 </body>
 </html>
