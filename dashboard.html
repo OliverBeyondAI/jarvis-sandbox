@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jarvis Command Center</title>
+<meta http-equiv="refresh" content="60">
+<style>
+:root {
+    --bg: #0a0a0f; --surface: #151521; --card: #1a1a2e; --text: #e2e8f0;
+    --muted: #8892a8; --accent: #6366f1; --accent-hover: #818cf8;
+    --green: #10b981; --red: #ef4444; --yellow: #f59e0b; --blue: #3b82f6;
+    --border: #252540; --star: #f59e0b; --star-empty: #3a3a5a;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 1rem;
+}
+.container { max-width: 800px; margin: 0 auto; }
+
+.header {
+    text-align: center; padding: 1.5rem 0; margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+.header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.header .subtitle { color: var(--muted); font-size: 0.85rem; margin-top: 0.3rem; }
+
+.stats-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem; margin-bottom: 1.5rem;
+}
+@media (max-width: 600px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat {
+    background: var(--card); border-radius: 12px; padding: 1rem;
+    border: 1px solid var(--border); text-align: center;
+}
+.stat .label { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.stat .value { font-size: 1.4rem; font-weight: 700; margin-top: 0.2rem; }
+.stat .detail { color: var(--muted); font-size: 0.75rem; margin-top: 0.2rem; }
+
+.section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--muted); }
+
+.task-card {
+    background: var(--card); border-radius: 12px; padding: 1.2rem;
+    margin-bottom: 0.75rem; border: 1px solid var(--border);
+    transition: border-color 0.2s;
+}
+.task-card:hover { border-color: var(--accent); }
+
+.task-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+.task-name { font-weight: 600; font-size: 0.95rem; }
+.task-repo { color: var(--accent); font-size: 0.75rem; margin-left: 0.5rem; }
+
+.task-created {
+    display: flex; align-items: center; gap: 0.35rem;
+    font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem;
+}
+.task-created .created-icon {
+    font-size: 0.7rem; opacity: 0.7;
+}
+.task-created .created-label {
+    font-weight: 500; opacity: 0.8;
+}
+
+.status-badge {
+    padding: 3px 10px; border-radius: 20px; font-size: 0.7rem;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+}
+.status-queued { background: #f59e0b22; color: var(--yellow); }
+.status-running { background: #3b82f622; color: var(--blue); }
+.status-review { background: #f59e0b33; color: var(--yellow); animation: pulse 2s infinite; }
+.status-approved { background: #10b98122; color: var(--green); }
+.status-completed { background: #10b98122; color: var(--green); }
+.status-failed { background: #ef444422; color: var(--red); }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+.running-timer {
+    background: var(--blue); color: white; padding: 2px 8px; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.status-cancelled { background: #6b728022; color: var(--muted); }
+
+.task-desc { color: var(--muted); font-size: 0.85rem; line-height: 1.4; margin-bottom: 0.5rem; }
+.task-meta { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+.task-result { font-size: 0.8rem; color: var(--muted); background: var(--surface); padding: 0.5rem 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; }
+
+.task-links { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+
+.btn {
+    padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 500;
+    border: none; cursor: pointer; text-decoration: none; display: inline-block;
+    transition: all 0.2s;
+}
+.btn-primary { background: var(--accent); color: white; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); }
+.btn-approve { background: var(--green); color: white; }
+.btn-approve:hover { opacity: 0.9; }
+.btn-redo { background: var(--yellow); color: black; }
+.btn-redo:hover { opacity: 0.9; }
+.btn-cancel { background: var(--surface); color: var(--red); border: 1px solid var(--red); }
+.btn-cancel:hover { background: var(--red); color: white; }
+
+.task-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+.rating-section { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.rating-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.3rem; }
+.rating-stars { display: flex; gap: 2px; cursor: pointer; }
+.star { font-size: 1.3rem; color: var(--star-empty); transition: color 0.15s; }
+.star.active { color: var(--star); }
+.star:hover { color: var(--star); }
+.existing-feedback { font-size: 0.8rem; color: var(--muted); font-style: italic; margin-top: 0.3rem; }
+
+.feedback-form { margin-top: 0.5rem; }
+.feedback-form textarea {
+    width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font-size: 0.85rem;
+    resize: vertical; min-height: 50px; margin-bottom: 0.5rem; font-family: inherit;
+}
+
+.footer { text-align: center; color: var(--muted); font-size: 0.75rem; padding: 1.5rem 0; }
+.footer a { color: var(--accent); text-decoration: none; }
+
+.filters { display:flex; gap:0.5rem; margin-bottom:1rem; flex-wrap:wrap; }
+.filter-btn {
+    padding:6px 14px; border-radius:20px; font-size:0.8rem; font-weight:500;
+    border:1px solid var(--border); background:var(--surface); color:var(--muted);
+    cursor:pointer; transition:all 0.2s;
+}
+.filter-btn:hover { border-color:var(--accent); color:var(--text); }
+.filter-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
+
+.toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--green); color: white; padding: 10px 20px; border-radius: 10px;
+    font-size: 0.85rem; font-weight: 500; display: none; z-index: 100;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Jarvis Command Center</h1>
+        <div class="subtitle">AI Chief of Staff &middot; Refreshes every 60s</div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat">
+            <div class="label">Worker</div>
+            <div class="value" style="color:#10b981">ONLINE</div>
+            <div class="detail">RUNNING - update-the-jarvis-command-center-dashboard-at-jarv-5e04</div>
+        </div>
+        <div class="stat">
+            <div class="label">Tasks</div>
+            <div class="value">16</div>
+            <div class="detail">14 done &middot; 0 failed</div>
+        </div>
+        <div class="stat">
+            <div class="label">Avg Score</div>
+            <div class="value">8.2<span style="font-size:0.7rem;color:var(--muted)">/10</span></div>
+            <div class="detail">13 scored</div>
+        </div>
+        <div class="stat">
+            <div class="label">Needs Review</div>
+            <div class="value">2</div>
+            <div class="detail">awaiting you</div>
+        </div>
+    </div>
+
+    <div class="filters">
+        <button class="filter-btn active" onclick="filterTasks('all')">All (16)</button>
+        <button class="filter-btn" onclick="filterTasks('needs-review')">Needs Review (2)</button>
+        <button class="filter-btn" onclick="filterTasks('approved')">Approved (12)</button>
+        <button class="filter-btn" onclick="filterTasks('running')">Running (1)</button>
+        <button class="filter-btn" onclick="filterTasks('queued')">Queued (0)</button>
+        <button class="filter-btn" onclick="filterTasks('failed')">Failed (0)</button>
+    </div>
+    
+        <div class="task-card" data-status="running">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">update-the-jarvis-command-center-dashboard-at-jarv-5e04</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-running">Running</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 29, 2026 at 7:31 AM</div>
+            <p class="task-desc">Update the Jarvis Command Center dashboard at jarvis.beyondai.help/dashboard/jarvis2026.
+
+The dashboard HTML file is at the root of the jarvis-sandbox</p>
+            <div class="task-meta">
+                <span>Score: <strong>-</strong></span>
+                <span class="running-timer" data-started="2026-03-29T07:31"></span>
+                <span>2026-03-29T07:31</span>
+            </div>
+            
+            
+            
+            
+            <div class="task-actions">
+                <button class="btn btn-cancel" onclick="cancelTask('update-the-jarvis-command-center-dashboard-at-jarv-5e04')">Cancel</button>
+            </div>
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">create-a-version-4-of-the-jarvis-landing-page-bu-580d</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 28, 2026 at 12:47 PM</div>
+            <p class="task-desc">Create a VERSION 4 of the Jarvis landing page — building on the V3 file (index.html) already in the jarvis-sandbox repo. This should push the page fro</p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+                
+                <span>2026-03-28T12:47</span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 9/10. Everything is in place. There's one issue — the `.btn-primary` has two animation declarations (shimmer on `::after` and `ctaPulse` on the element itsel</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/11" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="create-a-version-4-of-the-jarvis-landing-page-bu-580d">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-create-a-version-4-of-the-jarvis-landing-page-bu-580d" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-create-a-version-4-of-the-jarvis-landing-page-bu-580d"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('create-a-version-4-of-the-jarvis-landing-page-bu-580d')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">create-a-version-3-mind-blowing-futuristic-landin-18df</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 28, 2026 at 12:21 PM</div>
+            <p class="task-desc">Create a VERSION 3 mind-blowing, futuristic landing page for Jarvis — "AI Chief of Staff as a Service". This should look like it came from the year 20</p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+                
+                <span>2026-03-28T12:21</span>
+            </div>
+            <div class="task-result">Completed in 2 review rounds. Final score: 9/10. Both images look great:
+
+- **hero-bg.jpg** (1.35 MB) — Dark futuristic command center with holographic displays showing world maps and data, cyan neon </div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/10" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="create-a-version-3-mind-blowing-futuristic-landin-18df">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-create-a-version-3-mind-blowing-futuristic-landin-18df" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-create-a-version-3-mind-blowing-futuristic-landin-18df"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('create-a-version-3-mind-blowing-futuristic-landin-18df')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">improve-the-jarvis-task-management-system-in-task-c198</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 28, 2026 at 7:47 AM</div>
+            <p class="task-desc">Improve the Jarvis task management system in task_runner.py with two enhancements:
+
+**PART 1 — Auto-filter closed/merged PRs from task list**
+- When l</p>
+            <div class="task-meta">
+                <span>Score: <strong>8/10</strong></span>
+                
+                <span>2026-03-28T07:47</span>
+            </div>
+            <div class="task-result">Completed in 2 review rounds. Final score: 8/10. Done. Created `pr_status_checker.py` with:
+
+**Core functions:**
+- **`get_pr_status(pr_url)`** — Calls GitHub REST API to check PR state (open/merged/cl</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="improve-the-jarvis-task-management-system-in-task-c198">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-improve-the-jarvis-task-management-system-in-task-c198" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-improve-the-jarvis-task-management-system-in-task-c198"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('improve-the-jarvis-task-management-system-in-task-c198')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">the-github-pages-site-at-https-oliverbeyondai-gi-9e39</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 27, 2026 at 5:26 PM</div>
+            <p class="task-desc">The GitHub Pages site at https://oliverbeyondai.github.io/jarvis-sandbox/ is returning a 404 "File not found" error. GitHub Pages requires an index.ht</p>
+            <div class="task-meta">
+                <span>Score: <strong>-</strong></span>
+                
+                <span>2026-03-27T17:26</span>
+            </div>
+            <div class="task-result">No changes were made.</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="the-github-pages-site-at-https-oliverbeyondai-gi-9e39">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-the-github-pages-site-at-https-oliverbeyondai-gi-9e39" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-the-github-pages-site-at-https-oliverbeyondai-gi-9e39"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('the-github-pages-site-at-https-oliverbeyondai-gi-9e39')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">4985a2d3</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 26, 2026 at 5:41 PM</div>
+            <p class="task-desc">Update the existing index.html in the jarvis-sandbox repo.
+
+TASK: Generate a new hero header image using the Nano Banana Pro (Gemini image generation</p>
+            <div class="task-meta">
+                <span>Score: <strong>8/10</strong></span>
+                
+                <span>2026-03-26T17:41</span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 8/10. Done. Here's what I did:
+
+1. **Generated a new hero image** using the Gemini Imagen 4.0 API (`imagen-4.0-generate-001`) with a detailed prompt for a ci</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/8" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="4985a2d3">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-4985a2d3" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-4985a2d3"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('4985a2d3')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">2fd69bea</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 26, 2026 at 5:28 PM</div>
+            <p class="task-desc">Using the Nano Banana Pro (Gemini image generation) API, generate THREE different futuristic hero images for the BeyondAI landing page (index.html). E</p>
+            <div class="task-meta">
+                <span>Score: <strong>8/10</strong></span>
+                
+                <span>2026-03-26T17:28</span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 8/10. The image looks great — a well-dressed man at a glass desk with holographic data displays, warm lighting, city skyline at dusk, and the right color ton</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/7" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="2fd69bea">
+                    <span class="star  active" data-value="1">★</span><span class="star  active" data-value="2">★</span><span class="star  active" data-value="3">★</span><span class="star  active" data-value="4">★</span><span class="star  active" data-value="5">★</span><span class="star  active" data-value="6">★</span><span class="star  active" data-value="7">★</span><span class="star  active" data-value="8">★</span><span class="star  active" data-value="9">★</span><span class="star  active" data-value="10">★</span>
+                </div>
+                <div class="existing-feedback">Approved from dashboard</div>
+                <div class="feedback-form" id="feedback-2fd69bea" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-2fd69bea"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('2fd69bea')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="cancelled">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">2b1eeef0</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-cancelled">Cancelled</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 26, 2026 at 5:16 PM</div>
+            <p class="task-desc">You are a world-class UI/UX designer and brand strategist. Your job is to design and build the best possible hero image for the BeyondAI landing page.</p>
+            <div class="task-meta">
+                <span>Score: <strong>-</strong></span>
+                
+                <span>2026-03-26T17:16</span>
+            </div>
+            
+            
+            
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">6a738ed8</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 26, 2026 at 5:16 PM</div>
+            <p class="task-desc">Using the Nano Banana Pro (Gemini image generation) API, generate a futuristic hero image for the BeyondAI landing page.
+
+Image requirements:
+- Style</p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+                
+                <span>2026-03-26T17:16</span>
+            </div>
+            <div class="task-result">Completed in 2 review rounds. Final score: 9/10. The hero image has been generated and saved. It features a futuristic AI holographic figure with deep blue and purple tones, glowing cyan accents, and </div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/6" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="6a738ed8">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-6a738ed8" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-6a738ed8"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('6a738ed8')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">2ff6408f</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Mar 26, 2026 at 4:24 PM</div>
+            <p class="task-desc">Create a simple landing page called index.html for BeyondAI. Include a hero section with the headline "AI Chief of Staff as a Service", a brief descri</p>
+            <div class="task-meta">
+                <span>Score: <strong>1/10</strong></span>
+                
+                <span>2026-03-26T16:24</span>
+            </div>
+            <div class="task-result">Completed in 3 review rounds. Final score: 1/10. It seems the write permission is being blocked. Could you approve the file write permission so I can create `index.html`? The file is a standalone Beyo</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/1" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="2ff6408f">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-2ff6408f" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-2ff6408f"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('2ff6408f')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">test0001</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Unknown</div>
+            <p class="task-desc"></p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+
+                <span></span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 9/10. Created `index.html` — a single-file, zero-dependency landing page for BeyondAI with:
+
+- **Hero section**: "AI Chief of Staff as a Service" headline, d</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/2" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="test0001">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-test0001" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-test0001"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('test0001')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">test0004</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Unknown</div>
+            <p class="task-desc"></p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+
+                <span></span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 9/10. File looks good. Everything is well-formed and consistent.
+
+**Done.** Here's what I did:
+
+- **Added a Testimonials section** between Features and the C</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/5" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="test0004">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-test0004" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-test0004"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('test0004')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="needs-review">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">prior-auth-agent-prototype</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-review">Needs Review</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Unknown</div>
+            <p class="task-desc"></p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+
+                <span></span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 9/10. File is complete and well-formed. Here's what I built:
+
+**`prior-auth/index.html`** — A single-file Prior Authorization Agent prototype for OphthoCode </div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/prior-auth/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="prior-auth-agent-prototype">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-prior-auth-agent-prototype" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-prior-auth-agent-prototype"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('prior-auth-agent-prototype')">Submit</button>
+                </div>
+            </div>
+            
+            <div class="task-actions">
+                <button class="btn btn-approve" onclick="approveTask('prior-auth-agent-prototype')">Approve</button>
+                <button class="btn btn-redo" onclick="requestChanges('prior-auth-agent-prototype')">Request Changes</button>
+            </div>
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">test0002</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Unknown</div>
+            <p class="task-desc"></p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+
+                <span></span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 9/10. Done. Here's what I did:
+
+1. **Brought `index.html`** from the previous successful task branch (`f9947eb`) onto the current branch, since the task says</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/3" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="test0002">
+                    <span class="star  active" data-value="1">★</span><span class="star  active" data-value="2">★</span><span class="star  active" data-value="3">★</span><span class="star  active" data-value="4">★</span><span class="star  active" data-value="5">★</span><span class="star  active" data-value="6">★</span><span class="star  active" data-value="7">★</span><span class="star  active" data-value="8">★</span><span class="star  active" data-value="9">★</span><span class="star  active" data-value="10">★</span>
+                </div>
+                <div class="existing-feedback">Approved from dashboard</div>
+                <div class="feedback-form" id="feedback-test0002" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-test0002"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('test0002')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+        <div class="task-card" data-status="needs-review">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">referral-intake-tracker-prototype</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-review">Needs Review</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Unknown</div>
+            <p class="task-desc"></p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+
+                <span></span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 9/10. Built `referral-tracker/index.html` — a complete single-file prototype with:
+
+**Inbox View:**
+- 6 demo referrals with realistic ophthalmology data (cat</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/referral-tracker/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/12" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="referral-intake-tracker-prototype">
+                    <span class="star " data-value="1">★</span><span class="star " data-value="2">★</span><span class="star " data-value="3">★</span><span class="star " data-value="4">★</span><span class="star " data-value="5">★</span><span class="star " data-value="6">★</span><span class="star " data-value="7">★</span><span class="star " data-value="8">★</span><span class="star " data-value="9">★</span><span class="star " data-value="10">★</span>
+                </div>
+                
+                <div class="feedback-form" id="feedback-referral-intake-tracker-prototype" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-referral-intake-tracker-prototype"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('referral-intake-tracker-prototype')">Submit</button>
+                </div>
+            </div>
+            
+            <div class="task-actions">
+                <button class="btn btn-approve" onclick="approveTask('referral-intake-tracker-prototype')">Approve</button>
+                <button class="btn btn-redo" onclick="requestChanges('referral-intake-tracker-prototype')">Request Changes</button>
+            </div>
+        </div>
+        <div class="task-card" data-status="approved">
+            <div class="task-header">
+                <div>
+                    <span class="task-name">test0003</span>
+                    <span class="task-repo">#jarvis-sandbox</span>
+                </div>
+                <span class="status-badge status-approved">Approved</span>
+            </div>
+            <div class="task-created"><span class="created-icon">📅</span> <span class="created-label">Created:</span> Unknown</div>
+            <p class="task-desc"></p>
+            <div class="task-meta">
+                <span>Score: <strong>9/10</strong></span>
+
+                <span></span>
+            </div>
+            <div class="task-result">Completed in 1 review rounds. Final score: 9/10. The file is complete and well-formed. Here's what I did:
+
+- **Pulled `index.html`** from the most recent prior branch (commit `24b081f`) since the curr</div>
+            
+            <div class="task-links">
+                <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank" class="btn btn-primary">View Live Page</a>
+                <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pull/4" target="_blank" class="btn btn-secondary">GitHub</a>
+            </div>
+            
+            <div class="rating-section">
+                <div class="rating-label">Your Rating:</div>
+                <div class="rating-stars" data-task="test0003">
+                    <span class="star  active" data-value="1">★</span><span class="star  active" data-value="2">★</span><span class="star  active" data-value="3">★</span><span class="star  active" data-value="4">★</span><span class="star  active" data-value="5">★</span><span class="star  active" data-value="6">★</span><span class="star  active" data-value="7">★</span><span class="star  active" data-value="8">★</span><span class="star  active" data-value="9">★</span><span class="star  active" data-value="10">★</span>
+                </div>
+                <div class="existing-feedback">Approved from dashboard</div>
+                <div class="feedback-form" id="feedback-test0003" style="display:none">
+                    <textarea placeholder="Add feedback (optional)..." id="comment-test0003"></textarea>
+                    <button class="btn btn-primary" onclick="submitRating('test0003')">Submit</button>
+                </div>
+            </div>
+            
+        </div>
+
+    <div class="footer">
+        <p>Last refreshed: 07:33 AM ET, Mar 29</p>
+        <p style="margin-top:0.3rem">
+            <a href="https://oliverbeyondai.github.io/jarvis-sandbox/" target="_blank">Live Sandbox</a> &middot;
+            <a href="https://github.com/OliverBeyondAI/jarvis-sandbox/pulls" target="_blank">GitHub PRs</a> &middot;
+            <a href="/dashboard/jarvis2026" onclick="location.reload();return false;">Refresh</a>
+        </p>
+    </div>
+</div>
+
+<div class="toast" id="toast">Saved!</div>
+
+<script>
+const SECRET = "jarvis2026";
+const BASE = "";
+
+let currentFilter = new URLSearchParams(window.location.search).get("filter") || "all";
+
+function filterTasks(status) {
+    currentFilter = status;
+    // Update URL without reload so filter persists
+    const url = new URL(window.location);
+    url.searchParams.set("filter", status);
+    window.history.replaceState({}, "", url);
+
+    document.querySelectorAll(".task-card").forEach(card => {
+        if (status === "all" || card.dataset.status === status) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.textContent.toLowerCase().startsWith(status === "all" ? "all" : status.replace("-", " ")));
+    });
+}
+
+// Apply filter on page load (including after refresh)
+document.addEventListener("DOMContentLoaded", () => { filterTasks(currentFilter); });
+
+// Live running timer
+function updateTimers() {
+    document.querySelectorAll(".running-timer").forEach(el => {
+        const started = el.dataset.started;
+        if (!started) return;
+        const start = new Date(started);
+        const now = new Date();
+        const diff = Math.floor((now - start) / 1000);
+        const mins = Math.floor(diff / 60);
+        const secs = diff % 60;
+        const hrs = Math.floor(mins / 60);
+        const m = mins % 60;
+        if (hrs > 0) {
+            el.textContent = `Running: ${hrs}h ${m}m ${secs < 10 ? "0" : ""}${secs}s`;
+        } else {
+            el.textContent = `Running: ${m}m ${secs < 10 ? "0" : ""}${secs}s`;
+        }
+    });
+}
+updateTimers();
+setInterval(updateTimers, 1000);
+
+function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2500);
+}
+
+// Star rating
+document.querySelectorAll(".rating-stars").forEach(container => {
+    const stars = container.querySelectorAll(".star");
+    const taskId = container.dataset.task;
+
+    stars.forEach(star => {
+        star.addEventListener("mouseenter", () => {
+            const val = parseInt(star.dataset.value);
+            stars.forEach(s => s.classList.toggle("active", parseInt(s.dataset.value) <= val));
+        });
+
+        star.addEventListener("click", () => {
+            const val = parseInt(star.dataset.value);
+            container.dataset.selectedRating = val;
+            stars.forEach(s => s.classList.toggle("active", parseInt(s.dataset.value) <= val));
+            document.getElementById("feedback-" + taskId).style.display = "block";
+        });
+    });
+
+    container.addEventListener("mouseleave", () => {
+        const selected = parseInt(container.dataset.selectedRating || 0);
+        stars.forEach(s => s.classList.toggle("active", parseInt(s.dataset.value) <= selected));
+    });
+});
+
+function submitRating(taskId) {
+    const container = document.querySelector(`.rating-stars[data-task="${taskId}"]`);
+    const rating = parseInt(container.dataset.selectedRating || 0);
+    const comment = document.getElementById("comment-" + taskId).value;
+    if (!rating) { showToast("Please select a rating"); return; }
+
+    fetch(`/api/rate/${SECRET}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId, rating: rating, feedback: comment })
+    }).then(r => r.json()).then(d => {
+        showToast("Rating saved! " + rating + "/10");
+        setTimeout(() => { const url = new URL(window.location); url.searchParams.set("filter", currentFilter); window.location = url; }, 1000);
+    }).catch(e => showToast("Error: " + e));
+}
+
+function approveTask(taskId) {
+    fetch(`/api/approve/${SECRET}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId })
+    }).then(r => r.json()).then(d => {
+        showToast("Approved!");
+        setTimeout(() => { const url = new URL(window.location); url.searchParams.set("filter", currentFilter); window.location = url; }, 1000);
+    }).catch(e => showToast("Error: " + e));
+}
+
+function requestChanges(taskId) {
+    const feedback = prompt("What changes do you want?");
+    if (!feedback) return;
+
+    fetch(`/api/request-changes/${SECRET}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId, feedback: feedback })
+    }).then(r => r.json()).then(d => {
+        showToast("Changes requested! Jarvis is on it.");
+        setTimeout(() => { const url = new URL(window.location); url.searchParams.set("filter", currentFilter); window.location = url; }, 1000);
+    }).catch(e => showToast("Error: " + e));
+}
+
+function cancelTask(taskId) {
+    if (!confirm("Cancel this task?")) return;
+
+    fetch(`/api/cancel/${SECRET}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId })
+    }).then(r => r.json()).then(d => {
+        showToast("Task cancelled");
+        setTimeout(() => { const url = new URL(window.location); url.searchParams.set("filter", currentFilter); window.location = url; }, 1000);
+    }).catch(e => showToast("Error: " + e));
+}
+
+function retryTask(taskId) {
+    fetch(`/api/retry/${SECRET}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId })
+    }).then(r => r.json()).then(d => {
+        showToast("Retrying task!");
+        setTimeout(() => { const url = new URL(window.location); url.searchParams.set("filter", currentFilter); window.location = url; }, 1000);
+    }).catch(e => showToast("Error: " + e));
+}
+</script>
+</body>
+</html>
