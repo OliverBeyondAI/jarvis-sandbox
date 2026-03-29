@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OphthoCode AI — Referral Intake & Tracking</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F172A'/%3E%3Ccircle cx='32' cy='28' r='14' fill='none' stroke='%2306B6D4' stroke-width='2.5'/%3E%3Ccircle cx='32' cy='28' r='6' fill='%231E40AF'/%3E%3Cpath d='M20 48 L32 40 L44 48' fill='none' stroke='%2306B6D4' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --primary: #1E40AF;
+      --primary-light: #3B82F6;
+      --bg-primary: #0F172A;
+      --bg-secondary: #1E293B;
+      --bg-tertiary: #273548;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --border: #334155;
+      --green: #22C55E;
+      --green-bg: rgba(34, 197, 94, 0.12);
+      --yellow: #EAB308;
+      --yellow-bg: rgba(234, 179, 8, 0.12);
+      --red: #EF4444;
+      --red-bg: rgba(239, 68, 68, 0.12);
+      --accent: #06B6D4;
+      --accent-bg: rgba(6, 182, 212, 0.1);
+      --blue-bg: rgba(30, 64, 175, 0.15);
+      --radius-lg: 12px;
+      --radius-md: 8px;
+      --radius-sm: 6px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+      --shadow-lg: 0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      min-height: 100dvh;
+    }
+
+    /* ===== Header ===== */
+    .app-header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .brand-icon svg { width: 20px; height: 20px; }
+    .brand-text h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text-primary);
+    }
+    .brand-text span {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .header-badge {
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(6, 182, 212, 0.2);
+    }
+
+    /* ===== Tab Navigation ===== */
+    .tab-nav {
+      display: flex;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 12px 8px;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+    .tab-btn.active { color: var(--accent); }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 16px;
+      right: 16px;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 2px 2px 0 0;
+    }
+    .tab-btn svg { width: 16px; height: 16px; }
+    .tab-badge {
+      background: var(--red);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* ===== Main Content ===== */
+    .main { max-width: 900px; margin: 0 auto; padding: 0 0 80px 0; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ===== Inbox View ===== */
+    .inbox-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 16px;
+    }
+    .stat-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+    .stat-card.new .stat-number { color: var(--primary-light); }
+    .stat-card.progress .stat-number { color: var(--yellow); }
+    .stat-card.scheduled .stat-number { color: var(--green); }
+    .stat-card.completed .stat-number { color: var(--text-muted); }
+
+    /* Alert Banner */
+    .alert-banner {
+      margin: 0 16px 12px;
+      background: var(--yellow-bg);
+      border: 1px solid rgba(234, 179, 8, 0.25);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .alert-banner:hover { background: rgba(234, 179, 8, 0.18); }
+    .alert-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      color: var(--yellow);
+      margin-top: 1px;
+    }
+    .alert-text {
+      font-size: 13px;
+      color: var(--text-primary);
+      line-height: 1.4;
+    }
+    .alert-text strong { color: var(--yellow); }
+    .alert-subtext {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* AI Extraction Demo */
+    .ai-demo-section {
+      margin: 0 16px 12px;
+    }
+    .ai-demo-toggle {
+      width: 100%;
+      background: linear-gradient(135deg, rgba(30, 64, 175, 0.15), rgba(6, 182, 212, 0.1));
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .ai-demo-toggle:hover { border-color: var(--accent); }
+    .ai-demo-toggle svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+    .ai-demo-panel {
+      display: none;
+      margin-top: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      animation: slideDown 0.3s ease;
+    }
+    .ai-demo-panel.open { display: block; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .ai-demo-panel h3 {
+      font-size: 14px;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ai-textarea {
+      width: 100%;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 12px;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 100px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .ai-textarea:focus { border-color: var(--accent); }
+    .ai-textarea::placeholder { color: var(--text-muted); }
+    .ai-extract-btn {
+      margin-top: 10px;
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 10px;
+      color: white;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .ai-extract-btn:hover { opacity: 0.9; }
+    .ai-extract-btn:active { transform: scale(0.98); }
+    .ai-result {
+      display: none;
+      margin-top: 12px;
+      background: var(--bg-primary);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      animation: slideDown 0.3s ease;
+    }
+    .ai-result.show { display: block; }
+    .ai-result h4 {
+      font-size: 12px;
+      color: var(--green);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .extracted-fields {
+      display: grid;
+      gap: 6px;
+    }
+    .extracted-field {
+      display: flex;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .extracted-field .label {
+      color: var(--text-muted);
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+    .extracted-field .value {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* Referral List */
+    .section-header {
+      padding: 12px 16px 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .referral-list { padding: 0 16px; }
+    .referral-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .referral-card:hover {
+      border-color: var(--primary-light);
+      background: var(--bg-tertiary);
+    }
+    .referral-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .referral-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .patient-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .status-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+    .status-new { background: var(--blue-bg); color: var(--primary-light); }
+    .status-progress { background: var(--yellow-bg); color: var(--yellow); }
+    .status-scheduled { background: var(--green-bg); color: var(--green); }
+    .status-completed { background: rgba(100, 116, 139, 0.15); color: var(--text-muted); }
+    .referral-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      margin-bottom: 6px;
+    }
+    .referral-reason {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .referral-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .urgency-high {
+      color: var(--red);
+      font-weight: 600;
+    }
+    .urgency-routine {
+      color: var(--text-muted);
+    }
+
+    /* Referral Detail Panel */
+    .detail-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      animation: fadeIn 0.2s ease;
+    }
+    .detail-overlay.open { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .detail-panel {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 900px;
+      max-height: 85vh;
+      max-height: 85dvh;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      border-radius: 16px 16px 0 0;
+      z-index: 201;
+      overflow-y: auto;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(100%); }
+      to { transform: translateX(-50%) translateY(0); }
+    }
+    .detail-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--text-muted);
+      border-radius: 2px;
+      margin: 10px auto;
+      opacity: 0.4;
+    }
+    .detail-header {
+      padding: 4px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .detail-patient-name {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .detail-close {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+    .detail-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px 20px;
+    }
+    .info-item { }
+    .info-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .info-value {
+      font-size: 13px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .info-item.full { grid-column: 1 / -1; }
+
+    /* SMS Preview */
+    .sms-preview {
+      margin: 0 20px 16px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+    }
+    .sms-label {
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sms-bubble {
+      background: var(--primary);
+      border-radius: 16px 16px 4px 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-primary);
+    }
+
+    /* Action Buttons */
+    .detail-actions {
+      padding: 0 20px 24px;
+      display: flex;
+      gap: 8px;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 11px 8px;
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+    .action-btn svg { width: 14px; height: 14px; }
+    .action-schedule { background: var(--green); color: white; }
+    .action-schedule:hover { background: #16a34a; }
+    .action-info { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); }
+    .action-info:hover { border-color: var(--text-muted); }
+    .action-complete { background: var(--bg-primary); color: var(--text-primary); border: 1px solid var(--border); }
+    .action-complete:hover { border-color: var(--text-muted); }
+
+    /* ===== Analytics View ===== */
+    .analytics-content { padding: 16px; }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .kpi-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      text-align: center;
+    }
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .kpi-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .kpi-change {
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .kpi-change.up { color: var(--green); }
+    .kpi-change.down { color: var(--red); }
+
+    /* Chart Cards */
+    .chart-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .chart-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .chart-title svg { width: 16px; height: 16px; color: var(--accent); }
+
+    /* Bar Chart */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 140px;
+      padding-top: 10px;
+    }
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+    .bar {
+      width: 100%;
+      max-width: 48px;
+      border-radius: 4px 4px 0 0;
+      background: linear-gradient(180deg, var(--accent), var(--primary));
+      transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .bar-value {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .bar-label {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Horizontal Bar Chart */
+    .h-bar-chart { display: grid; gap: 10px; }
+    .h-bar-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+    .h-bar-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .h-bar-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .h-bar-track {
+      height: 8px;
+      background: var(--bg-primary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .h-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .h-bar-count {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      min-width: 32px;
+      text-align: right;
+    }
+    .h-bar-trend {
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .trend-up { color: var(--green); }
+    .trend-down { color: var(--red); }
+    .trend-flat { color: var(--text-muted); }
+
+    /* Pie Chart (CSS) */
+    .pie-chart-container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .pie-chart {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .pie-legend {
+      display: grid;
+      gap: 8px;
+      flex: 1;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+    .legend-label { color: var(--text-secondary); }
+    .legend-value {
+      margin-left: auto;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Referral Source Alert */
+    .source-alert {
+      background: linear-gradient(135deg, var(--red-bg), rgba(234, 179, 8, 0.08));
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .source-alert-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .source-alert-header svg { width: 18px; height: 18px; color: var(--red); }
+    .source-alert-header span {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--red);
+    }
+    .source-alert-body {
+      font-size: 13px;
+      color: var(--text-primary);
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .source-alert-action {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: var(--text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .source-alert-action:hover { background: rgba(239, 68, 68, 0.25); }
+
+    /* Efficiency Banner */
+    .efficiency-banner {
+      background: linear-gradient(135deg, var(--green-bg), rgba(6, 182, 212, 0.08));
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    .efficiency-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .efficiency-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .eff-stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .eff-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--green);
+      color: white;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 300;
+      transition: transform 0.3s ease;
+      box-shadow: var(--shadow-lg);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* Responsive */
+    @media (min-width: 600px) {
+      .inbox-stats { grid-template-columns: repeat(4, 1fr); }
+      .detail-panel { max-height: 75vh; border-radius: 16px 16px 0 0; }
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 380px) {
+      .inbox-stats { grid-template-columns: repeat(2, 1fr); }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-number { font-size: 18px; }
+      .detail-actions { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="10" r="6"/><circle cx="12" cy="10" r="2.5" fill="white" stroke="none"/>
+            <path d="M6 18l6-4 6 4"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>OphthoCode AI</h1>
+          <span>Referral Intake & Tracking</span>
+        </div>
+      </div>
+      <span class="header-badge">PROTOTYPE</span>
+    </div>
+  </header>
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav" role="tablist">
+    <button class="tab-btn active" data-tab="inbox" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      Inbox
+      <span class="tab-badge">3</span>
+    </button>
+    <button class="tab-btn" data-tab="analytics" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-7"/></svg>
+      Analytics
+    </button>
+  </nav>
+
+  <main class="main">
+    <!-- ===== INBOX VIEW ===== -->
+    <div class="view active" id="inbox-view">
+      <!-- Quick Stats -->
+      <div class="inbox-stats">
+        <div class="stat-card new">
+          <div class="stat-number">3</div>
+          <div class="stat-label">New</div>
+        </div>
+        <div class="stat-card progress">
+          <div class="stat-number">1</div>
+          <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card scheduled">
+          <div class="stat-number">1</div>
+          <div class="stat-label">Scheduled</div>
+        </div>
+        <div class="stat-card completed">
+          <div class="stat-number">1</div>
+          <div class="stat-label">Completed</div>
+        </div>
+      </div>
+
+      <!-- Alert Banner -->
+      <div class="alert-banner" onclick="switchTab('analytics')">
+        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <div class="alert-text"><strong>Referral Source Alert:</strong> Dr. Johnson referrals down 40% this quarter</div>
+          <div class="alert-subtext">Tap to see analytics → Consider reaching out</div>
+        </div>
+      </div>
+
+      <!-- AI Extraction Demo -->
+      <div class="ai-demo-section">
+        <button class="ai-demo-toggle" onclick="toggleAiDemo()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M16 14H8a4 4 0 00-4 4v2h16v-2a4 4 0 00-4-4z"/><circle cx="19" cy="5" r="3" fill="currentColor" stroke="none"/></svg>
+          AI Referral Extraction — Try it
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto; width:14px; height:14px;"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="ai-demo-panel" id="ai-demo-panel">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;"><path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M16 14H8a4 4 0 00-4 4v2h16v-2a4 4 0 00-4-4z"/></svg>
+            Paste a referral document
+          </h3>
+          <textarea class="ai-textarea" id="ai-input" placeholder="Paste referral text here... e.g. 'Patient Maria Santos, DOB 05/14/1958, referred by Dr. James Chen at Bay Area Family Medicine for evaluation of bilateral cataracts. Patient reports progressive blurry vision over 6 months. Insurance: Blue Cross PPO #BC4491823. Please schedule at earliest convenience.'"></textarea>
+          <button class="ai-extract-btn" onclick="runAiExtraction()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            Extract with AI
+          </button>
+          <div class="ai-result" id="ai-result">
+            <h4>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;"><path d="M20 6L9 17l-5-5"/></svg>
+              Fields Extracted Successfully
+            </h4>
+            <div class="extracted-fields" id="extracted-fields"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Referral List -->
+      <div class="section-header">Referrals</div>
+      <div class="referral-list" id="referral-list"></div>
+    </div>
+
+    <!-- ===== ANALYTICS VIEW ===== -->
+    <div class="view" id="analytics-view">
+      <div class="analytics-content">
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-value">142</div>
+            <div class="kpi-label">Total Referrals (6mo)</div>
+            <div class="kpi-change up">↑ 18% vs prior</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" style="color: var(--green);">1.4d</div>
+            <div class="kpi-label">Avg Time to Schedule</div>
+            <div class="kpi-change up">↓ 62% improved</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" style="color: var(--yellow);">97%</div>
+            <div class="kpi-label">Patient Contact Rate</div>
+            <div class="kpi-change up">↑ 34% vs manual</div>
+          </div>
+        </div>
+
+        <!-- Efficiency Banner -->
+        <div class="efficiency-banner">
+          <div class="efficiency-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            AI Efficiency Gains
+          </div>
+          <div style="font-size: 13px; color: var(--text-secondary);">Replacing 2 full-time staff with automated intake</div>
+          <div class="efficiency-stats">
+            <div>
+              <div class="eff-stat-value">$124K</div>
+              <div class="eff-stat-label">Annual savings (est.)</div>
+            </div>
+            <div>
+              <div class="eff-stat-value">94%</div>
+              <div class="eff-stat-label">Time reduction</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Referral Source Alert -->
+        <div class="source-alert">
+          <div class="source-alert-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span>Referral Source Alert</span>
+          </div>
+          <div class="source-alert-body">
+            <strong>Dr. Michael Johnson</strong> (Valley Family Practice) referrals are <strong style="color:var(--red)">down 40%</strong> this quarter — from 12 to 7 referrals. Previously your #3 referral source.
+          </div>
+          <button class="source-alert-action" onclick="showToast('Outreach reminder set for Dr. Johnson')">📞 Schedule Outreach Call</button>
+        </div>
+
+        <!-- Referral Volume Bar Chart -->
+        <div class="chart-card">
+          <div class="chart-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="12" width="4" height="9"/><rect x="10" y="7" width="4" height="14"/><rect x="17" y="3" width="4" height="18"/></svg>
+            Referral Volume — Last 6 Months
+          </div>
+          <div class="bar-chart" id="volume-chart"></div>
+        </div>
+
+        <!-- Top Referral Sources -->
+        <div class="chart-card">
+          <div class="chart-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+            Top Referral Sources
+          </div>
+          <div class="h-bar-chart" id="sources-chart"></div>
+        </div>
+
+        <!-- Referral Reasons Pie Chart -->
+        <div class="chart-card">
+          <div class="chart-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0110 10H12V2z"/></svg>
+            Referral Reasons
+          </div>
+          <div class="pie-chart-container">
+            <div class="pie-chart" id="pie-chart"></div>
+            <div class="pie-legend" id="pie-legend"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Detail Overlay -->
+  <div class="detail-overlay" id="detail-overlay" onclick="closeDetail()"></div>
+  <div class="detail-panel" id="detail-panel" style="display:none;">
+    <div class="detail-handle"></div>
+    <div class="detail-header">
+      <div class="detail-header-top">
+        <span class="detail-patient-name" id="detail-name"></span>
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+      </div>
+      <span class="status-badge" id="detail-status"></span>
+    </div>
+    <div class="detail-info-grid" id="detail-info"></div>
+    <div class="sms-preview" id="sms-preview">
+      <div class="sms-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Patient Text Message Preview
+      </div>
+      <div class="sms-bubble" id="sms-text"></div>
+    </div>
+    <div class="detail-actions">
+      <button class="action-btn action-schedule" onclick="handleAction('scheduled')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Schedule
+      </button>
+      <button class="action-btn action-info" onclick="showToast('Info request sent')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        More Info
+      </button>
+      <button class="action-btn action-complete" onclick="handleAction('completed')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+        Complete
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== DEMO DATA =====
+    const referrals = [
+      {
+        id: 1,
+        patient: 'Margaret Chen',
+        dob: '03/22/1952',
+        status: 'new',
+        referringDoctor: 'Dr. Sarah Williams',
+        referringPractice: 'Pacific Primary Care',
+        reason: 'Cataracts',
+        urgency: 'Routine',
+        insurance: 'Medicare Advantage — UHC #MA8834921',
+        notes: 'Bilateral cataracts, progressive vision decline over 8 months. Patient interested in multifocal IOL.',
+        receivedDate: 'Mar 28, 2026',
+        assignedTo: 'Dr. Krivochenitser'
+      },
+      {
+        id: 2,
+        patient: 'Robert Thompson',
+        dob: '11/05/1968',
+        status: 'new',
+        referringDoctor: 'Dr. James Rivera',
+        referringPractice: 'Valley Family Medicine',
+        reason: 'Glaucoma',
+        urgency: 'High',
+        insurance: 'Blue Cross PPO #BC2847193',
+        notes: 'IOP measured at 28mmHg OD, 26mmHg OS. Cup-to-disc ratio 0.7. Family history of glaucoma. Needs urgent evaluation.',
+        receivedDate: 'Mar 27, 2026',
+        assignedTo: 'Dr. Krivochenitser'
+      },
+      {
+        id: 3,
+        patient: 'Linda Nakamura',
+        dob: '07/14/1975',
+        status: 'new',
+        referringDoctor: 'Dr. Emily Foster',
+        referringPractice: 'Downtown Health Associates',
+        reason: 'Retina — Diabetic Retinopathy',
+        urgency: 'High',
+        insurance: 'Aetna HMO #AET3392017',
+        notes: 'Type 2 DM x 12 years, A1c 8.4. Dot-blot hemorrhages noted on screening exam. Needs retinal evaluation and possible anti-VEGF.',
+        receivedDate: 'Mar 27, 2026',
+        assignedTo: 'Dr. Krivochenitser'
+      },
+      {
+        id: 4,
+        patient: 'James Okafor',
+        dob: '01/30/1960',
+        status: 'progress',
+        referringDoctor: 'Dr. Michael Johnson',
+        referringPractice: 'Valley Family Practice',
+        reason: 'Cornea — Pterygium',
+        urgency: 'Routine',
+        insurance: 'Cigna PPO #CG1128456',
+        notes: 'Large nasal pterygium OD encroaching on visual axis. Causing astigmatism. Patient requesting surgical evaluation.',
+        receivedDate: 'Mar 25, 2026',
+        assignedTo: 'Dr. Krivochenitser'
+      },
+      {
+        id: 5,
+        patient: 'Patricia Gonzalez',
+        dob: '09/08/1949',
+        status: 'scheduled',
+        referringDoctor: 'Dr. David Park',
+        referringPractice: 'Sunset Medical Group',
+        reason: 'Cataracts',
+        urgency: 'Routine',
+        insurance: 'Medicare Part B #1EG4-TE5-MK72',
+        notes: 'Posterior subcapsular cataracts OU. BCVA 20/50 OD, 20/60 OS. Patient is an avid reader and very motivated for surgery.',
+        receivedDate: 'Mar 22, 2026',
+        scheduledDate: 'Apr 2, 2026',
+        assignedTo: 'Dr. Krivochenitser'
+      },
+      {
+        id: 6,
+        patient: 'William Bradford',
+        dob: '05/19/1943',
+        status: 'completed',
+        referringDoctor: 'Dr. Sarah Williams',
+        referringPractice: 'Pacific Primary Care',
+        reason: 'Glaucoma — Follow-up',
+        urgency: 'Routine',
+        insurance: 'Medicare Advantage — Humana #HG443821',
+        notes: 'Annual glaucoma follow-up. Currently on Latanoprost QHS OU. Last IOP: 16 OD, 17 OS. Stable.',
+        receivedDate: 'Mar 18, 2026',
+        completedDate: 'Mar 21, 2026',
+        assignedTo: 'Dr. Krivochenitser'
+      }
+    ];
+
+    // ===== RENDER REFERRAL LIST =====
+    function renderReferralList() {
+      const list = document.getElementById('referral-list');
+      list.innerHTML = referrals.map(r => `
+        <div class="referral-card" data-id="${r.id}" onclick="openDetail(${r.id})">
+          <div class="referral-top">
+            <span class="patient-name">${r.patient}</span>
+            <span class="status-badge status-${r.status === 'progress' ? 'progress' : r.status}">${statusLabel(r.status)}</span>
+          </div>
+          <div class="referral-meta">
+            <span>From: ${r.referringDoctor}</span>
+            <span class="${r.urgency === 'High' ? 'urgency-high' : 'urgency-routine'}">${r.urgency === 'High' ? '⚠ Urgent' : 'Routine'}</span>
+          </div>
+          <div class="referral-reason">${r.reason}</div>
+          <div class="referral-date">${r.status === 'completed' ? 'Completed ' + r.completedDate : r.status === 'scheduled' ? 'Scheduled: ' + r.scheduledDate : 'Received ' + r.receivedDate}</div>
+        </div>
+      `).join('');
+    }
+
+    function statusLabel(s) {
+      return { new: 'New', progress: 'In Progress', scheduled: 'Scheduled', completed: 'Completed' }[s];
+    }
+
+    // ===== DETAIL PANEL =====
+    let currentReferral = null;
+
+    function openDetail(id) {
+      const r = referrals.find(x => x.id === id);
+      if (!r) return;
+      currentReferral = r;
+
+      document.getElementById('detail-name').textContent = r.patient;
+      const badge = document.getElementById('detail-status');
+      badge.textContent = statusLabel(r.status);
+      badge.className = 'status-badge status-' + (r.status === 'progress' ? 'progress' : r.status);
+
+      document.getElementById('detail-info').innerHTML = `
+        <div class="info-item"><div class="info-label">Date of Birth</div><div class="info-value">${r.dob}</div></div>
+        <div class="info-item"><div class="info-label">Urgency</div><div class="info-value ${r.urgency === 'High' ? 'urgency-high' : ''}">${r.urgency === 'High' ? '⚠ ' + r.urgency : r.urgency}</div></div>
+        <div class="info-item"><div class="info-label">Referring Doctor</div><div class="info-value">${r.referringDoctor}</div></div>
+        <div class="info-item"><div class="info-label">Practice</div><div class="info-value">${r.referringPractice}</div></div>
+        <div class="info-item"><div class="info-label">Reason</div><div class="info-value" style="color:var(--accent)">${r.reason}</div></div>
+        <div class="info-item"><div class="info-label">Insurance</div><div class="info-value">${r.insurance}</div></div>
+        <div class="info-item full"><div class="info-label">Clinical Notes</div><div class="info-value" style="font-weight:400;color:var(--text-secondary)">${r.notes}</div></div>
+        <div class="info-item"><div class="info-label">Received</div><div class="info-value">${r.receivedDate}</div></div>
+        <div class="info-item"><div class="info-label">Assigned To</div><div class="info-value">${r.assignedTo}</div></div>
+        ${r.scheduledDate ? `<div class="info-item full"><div class="info-label">Scheduled</div><div class="info-value" style="color:var(--green)">${r.scheduledDate}</div></div>` : ''}
+      `;
+
+      // SMS preview
+      const firstName = r.patient.split(' ')[0];
+      const drLast = r.referringDoctor.replace('Dr. ', '').split(' ').pop();
+      document.getElementById('sms-text').textContent =
+        `Hi ${firstName}, we received your referral from Dr. ${drLast}. We would like to schedule you with Dr. Krivochenitser for a ${r.reason.split(' — ')[0].toLowerCase()} evaluation. Available times:\n\n• Tue, Apr 1 at 10:30 AM\n• Wed, Apr 2 at 2:00 PM\n• Fri, Apr 4 at 9:15 AM\n\nReply 1, 2, or 3 to confirm, or call (555) 234-5678.`;
+
+      document.getElementById('detail-overlay').classList.add('open');
+      document.getElementById('detail-panel').style.display = 'block';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetail() {
+      document.getElementById('detail-overlay').classList.remove('open');
+      document.getElementById('detail-panel').style.display = 'none';
+      document.body.style.overflow = '';
+      currentReferral = null;
+    }
+
+    function handleAction(action) {
+      if (!currentReferral) return;
+      const msg = action === 'scheduled'
+        ? `${currentReferral.patient} marked as scheduled`
+        : `${currentReferral.patient} marked as completed`;
+      currentReferral.status = action;
+      closeDetail();
+      renderReferralList();
+      updateStats();
+      showToast(msg);
+    }
+
+    function updateStats() {
+      const counts = { new: 0, progress: 0, scheduled: 0, completed: 0 };
+      referrals.forEach(r => counts[r.status]++);
+      const cards = document.querySelectorAll('.stat-card');
+      cards[0].querySelector('.stat-number').textContent = counts.new;
+      cards[1].querySelector('.stat-number').textContent = counts.progress;
+      cards[2].querySelector('.stat-number').textContent = counts.scheduled;
+      cards[3].querySelector('.stat-number').textContent = counts.completed;
+      document.querySelector('.tab-badge').textContent = counts.new;
+    }
+
+    // ===== AI EXTRACTION DEMO =====
+    function toggleAiDemo() {
+      document.getElementById('ai-demo-panel').classList.toggle('open');
+    }
+
+    function runAiExtraction() {
+      const input = document.getElementById('ai-input').value || document.getElementById('ai-input').placeholder;
+      const btn = document.querySelector('.ai-extract-btn');
+      btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid white;border-top-color:transparent;border-radius:50%;animation:spin 0.6s linear infinite"></span> Extracting...';
+
+      // Add spin animation
+      if (!document.getElementById('spin-style')) {
+        const s = document.createElement('style');
+        s.id = 'spin-style';
+        s.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+        document.head.appendChild(s);
+      }
+
+      setTimeout(() => {
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;"><path d="M20 6L9 17l-5-5"/></svg> Extracted!';
+        btn.style.background = 'var(--green)';
+
+        const fields = [
+          ['Patient Name', 'Maria Santos'],
+          ['Date of Birth', '05/14/1958'],
+          ['Referring Doctor', 'Dr. James Chen'],
+          ['Practice', 'Bay Area Family Medicine'],
+          ['Reason', 'Bilateral Cataracts'],
+          ['Urgency', 'Routine — Earliest convenience'],
+          ['Insurance', 'Blue Cross PPO #BC4491823'],
+          ['Key Symptoms', 'Progressive blurry vision, 6 months'],
+        ];
+
+        document.getElementById('extracted-fields').innerHTML = fields.map(([l, v]) =>
+          `<div class="extracted-field"><span class="label">${l}</span><span class="value">${v}</span></div>`
+        ).join('');
+        document.getElementById('ai-result').classList.add('show');
+
+        setTimeout(() => {
+          btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:16px;height:16px;"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Extract with AI';
+          btn.style.background = '';
+        }, 3000);
+      }, 1500);
+    }
+
+    // ===== TAB NAVIGATION =====
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === tab);
+        b.setAttribute('aria-selected', b.dataset.tab === tab);
+      });
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(tab + '-view').classList.add('active');
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // ===== TOAST =====
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ===== ANALYTICS CHARTS =====
+    function renderVolumeChart() {
+      const data = [
+        { month: 'Oct', value: 18 },
+        { month: 'Nov', value: 22 },
+        { month: 'Dec', value: 16 },
+        { month: 'Jan', value: 24 },
+        { month: 'Feb', value: 28 },
+        { month: 'Mar', value: 34 },
+      ];
+      const max = Math.max(...data.map(d => d.value));
+      document.getElementById('volume-chart').innerHTML = data.map(d => `
+        <div class="bar-col">
+          <div class="bar-value">${d.value}</div>
+          <div class="bar" style="height: ${(d.value / max) * 100}%"></div>
+          <div class="bar-label">${d.month}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderSourcesChart() {
+      const sources = [
+        { name: 'Dr. Sarah Williams', practice: 'Pacific Primary Care', count: 34, trend: 'up', change: '+12%' },
+        { name: 'Dr. David Park', practice: 'Sunset Medical Group', count: 28, trend: 'up', change: '+8%' },
+        { name: 'Dr. Michael Johnson', practice: 'Valley Family Practice', count: 7, trend: 'down', change: '-40%' },
+        { name: 'Dr. James Rivera', practice: 'Valley Family Medicine', count: 19, trend: 'up', change: '+5%' },
+        { name: 'Dr. Emily Foster', practice: 'Downtown Health Assoc.', count: 16, trend: 'flat', change: '—' },
+      ];
+      const max = Math.max(...sources.map(s => s.count));
+      document.getElementById('sources-chart').innerHTML = sources.map(s => `
+        <div class="h-bar-row">
+          <div class="h-bar-info">
+            <div class="h-bar-name">${s.name} <span style="color:var(--text-muted);font-weight:400;font-size:11px">· ${s.practice}</span></div>
+            <div class="h-bar-track"><div class="h-bar-fill" style="width:${(s.count / max) * 100}%"></div></div>
+          </div>
+          <div style="text-align:right">
+            <div class="h-bar-count">${s.count}</div>
+            <div class="h-bar-trend trend-${s.trend}">${s.change}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderPieChart() {
+      const data = [
+        { label: 'Cataracts', value: 42, color: '#3B82F6' },
+        { label: 'Glaucoma', value: 28, color: '#06B6D4' },
+        { label: 'Retina', value: 22, color: '#8B5CF6' },
+        { label: 'Cornea', value: 14, color: '#22C55E' },
+        { label: 'Other', value: 10, color: '#64748B' },
+      ];
+      const total = data.reduce((s, d) => s + d.value, 0);
+
+      // Build conic gradient
+      let gradientParts = [];
+      let cumulative = 0;
+      data.forEach(d => {
+        const start = (cumulative / total) * 360;
+        cumulative += d.value;
+        const end = (cumulative / total) * 360;
+        gradientParts.push(`${d.color} ${start}deg ${end}deg`);
+      });
+
+      document.getElementById('pie-chart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
+
+      document.getElementById('pie-legend').innerHTML = data.map(d => `
+        <div class="legend-item">
+          <div class="legend-dot" style="background:${d.color}"></div>
+          <span class="legend-label">${d.label}</span>
+          <span class="legend-value">${Math.round(d.value / total * 100)}%</span>
+        </div>
+      `).join('');
+    }
+
+    // ===== INIT =====
+    renderReferralList();
+    renderVolumeChart();
+    renderSourcesChart();
+    renderPieChart();
+  </script>
+</body>
+</html>
