@@ -272,12 +272,19 @@
   .badge-label { font-weight: 500; color: var(--text-secondary); }
 
   .sparkline-container {
-    height: 48px;
     position: relative;
   }
   .sparkline-container svg {
     width: 100%;
-    height: 100%;
+    height: 48px;
+  }
+  .sparkline-years {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 3px 0;
+    font-size: 0.68rem;
+    color: #8888a0;
+    letter-spacing: 0.5px;
   }
 
   /* ====== MAIN CHART ====== */
@@ -602,6 +609,7 @@ function buildSparkline(prices, color) {
   const firstX = pad;
   const lastX = pad + (w - pad * 2);
   const areaPoints = `${firstX},${h - pad} ${polyline} ${lastX},${h - pad}`;
+  const yearLabels = YEARS.map(y => `<span>${y}</span>`).join('');
   return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
     <defs><linearGradient id="sg_${color.replace('#','')}" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${color}" stop-opacity="0.25"/>
@@ -614,7 +622,7 @@ function buildSparkline(prices, color) {
       const y = h - pad - ((p - min) / range) * (h - pad * 2);
       return `<circle cx="${x}" cy="${y}" r="3" fill="${color}" />`;
     }).join('')}
-  </svg>`;
+  </svg><div class="sparkline-years">${yearLabels}</div>`;
 }
 
 // ========== ANIMATED COUNTER ==========
