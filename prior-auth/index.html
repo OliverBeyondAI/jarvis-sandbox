@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>OphthoCode AI — Prior Authorization Agent</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230F172A'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-family='system-ui' font-weight='700' font-size='24' fill='%231E40AF'%3EOC%3C/text%3E%3C/svg%3E">
+  <style>
+    /* ===== CSS Variables ===== */
+    :root {
+      --primary: #1E40AF;
+      --primary-light: #3B82F6;
+      --primary-glow: rgba(30, 64, 175, 0.3);
+      --bg-primary: #0F172A;
+      --bg-secondary: #1E293B;
+      --bg-tertiary: #273548;
+      --text-primary: #F1F5F9;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --border: #334155;
+      --border-light: #475569;
+      --green: #22C55E;
+      --green-bg: rgba(34, 197, 94, 0.1);
+      --yellow: #EAB308;
+      --yellow-bg: rgba(234, 179, 8, 0.1);
+      --red: #EF4444;
+      --red-bg: rgba(239, 68, 68, 0.1);
+      --blue-bg: rgba(30, 64, 175, 0.1);
+      --radius-card: 12px;
+      --radius-input: 8px;
+      --radius-badge: 6px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ===== Reset ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+    }
+
+    /* ===== Layout ===== */
+    .app {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0 16px 80px;
+      position: relative;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      padding: 20px 0 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .header-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .header-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: white;
+    }
+    .header h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+    .header-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ===== Step Indicator ===== */
+    .steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 24px;
+      padding: 0 8px;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .step-item:not(:last-child)::after {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--border);
+      margin: 0 4px;
+      transition: var(--transition);
+    }
+    .step-item:not(:last-child).completed::after {
+      background: var(--green);
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: var(--transition);
+      flex-shrink: 0;
+    }
+    .step-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+      white-space: nowrap;
+      transition: var(--transition);
+    }
+    .step-item.active .step-num {
+      background: var(--primary);
+      border-color: var(--primary-light);
+      color: white;
+    }
+    .step-item.active .step-label {
+      color: var(--text-primary);
+    }
+    .step-item.completed .step-num {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+    .step-item.completed .step-label {
+      color: var(--green);
+    }
+
+    /* ===== Cards ===== */
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .card-header h2 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .card-header .icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .card-header .icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ===== Section containers ===== */
+    .section {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    .section.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== Textarea ===== */
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-input);
+      padding: 14px;
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--text-primary);
+      resize: vertical;
+      transition: var(--transition);
+      line-height: 1.5;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* ===== Inputs ===== */
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .form-label label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .confidence-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .confidence-high {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    .confidence-medium {
+      background: var(--yellow-bg);
+      color: var(--yellow);
+      border: 1px solid rgba(234, 179, 8, 0.2);
+    }
+    .confidence-low {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .confidence-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .confidence-high .confidence-dot { background: var(--green); }
+    .confidence-medium .confidence-dot { background: var(--yellow); }
+    .confidence-low .confidence-dot { background: var(--red); }
+
+    input[type="text"],
+    input[type="date"],
+    select {
+      width: 100%;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-input);
+      padding: 10px 14px;
+      font-family: var(--font);
+      font-size: 14px;
+      color: var(--text-primary);
+      transition: var(--transition);
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+    }
+
+    /* ===== Buttons ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: var(--radius-input);
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      width: 100%;
+    }
+    .btn svg {
+      width: 18px;
+      height: 18px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      box-shadow: 0 4px 16px var(--primary-glow);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px var(--primary-glow);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-green {
+      background: linear-gradient(135deg, #16a34a, var(--green));
+      color: white;
+      box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+    }
+    .btn-green:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(34, 197, 94, 0.4);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+    .btn-outline:hover {
+      border-color: var(--primary-light);
+      color: var(--primary-light);
+      background: var(--blue-bg);
+    }
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 13px;
+      width: auto;
+    }
+    .btn-red {
+      background: linear-gradient(135deg, #dc2626, var(--red));
+      color: white;
+    }
+
+    /* ===== Example Notes ===== */
+    .examples-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .example-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .example-chip {
+      padding: 6px 14px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .example-chip:hover {
+      border-color: var(--primary-light);
+      color: var(--primary-light);
+      background: var(--blue-bg);
+    }
+    .example-chip.selected {
+      border-color: var(--primary-light);
+      background: var(--blue-bg);
+      color: var(--primary-light);
+    }
+
+    /* ===== AI Processing Animation ===== */
+    .ai-processing {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .ai-processing.active {
+      display: block;
+    }
+    .ai-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary-light);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .ai-processing p {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .ai-processing .ai-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    /* ===== Extraction Fields ===== */
+    .extracted-fields {
+      display: grid;
+      gap: 2px;
+    }
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* ===== Medications List ===== */
+    .med-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .med-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border-radius: var(--radius-badge);
+      border: 1px solid var(--border);
+    }
+    .med-list li .med-icon {
+      color: var(--red);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    /* ===== Status Section ===== */
+    .status-card {
+      text-align: center;
+      padding: 24px 20px;
+    }
+    .status-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .status-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+    .status-icon.pending {
+      background: var(--yellow-bg);
+      border: 2px solid rgba(234, 179, 8, 0.3);
+    }
+    .status-icon.pending svg { fill: var(--yellow); }
+    .status-icon.approved {
+      background: var(--green-bg);
+      border: 2px solid rgba(34, 197, 94, 0.3);
+      animation: pulseGreen 2s ease infinite;
+    }
+    .status-icon.approved svg { fill: var(--green); }
+    .status-icon.denied {
+      background: var(--red-bg);
+      border: 2px solid rgba(239, 68, 68, 0.3);
+    }
+    .status-icon.denied svg { fill: var(--red); }
+    @keyframes pulseGreen {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.3); }
+      50% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
+    }
+    .status-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .status-subtitle {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .badge-pending {
+      background: var(--yellow-bg);
+      color: var(--yellow);
+      border: 1px solid rgba(234, 179, 8, 0.2);
+    }
+    .badge-approved {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    .badge-denied {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+    .badge-copay {
+      background: var(--blue-bg);
+      color: var(--primary-light);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    /* ===== Auth Details ===== */
+    .auth-detail {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      font-size: 13px;
+    }
+    .auth-detail:last-child { border-bottom: none; }
+    .auth-detail-label {
+      color: var(--text-muted);
+    }
+    .auth-detail-value {
+      color: var(--text-primary);
+      font-weight: 500;
+      text-align: right;
+    }
+
+    /* ===== Timeline ===== */
+    .timeline {
+      padding: 16px 0 0;
+    }
+    .timeline-item {
+      display: flex;
+      gap: 12px;
+      padding-bottom: 16px;
+      position: relative;
+    }
+    .timeline-item:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 28px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .timeline-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .timeline-dot svg {
+      width: 12px;
+      height: 12px;
+    }
+    .timeline-dot.green {
+      background: var(--green-bg);
+      border: 2px solid rgba(34, 197, 94, 0.3);
+    }
+    .timeline-dot.green svg { fill: var(--green); }
+    .timeline-dot.blue {
+      background: var(--blue-bg);
+      border: 2px solid rgba(59, 130, 246, 0.3);
+    }
+    .timeline-dot.blue svg { fill: var(--primary-light); }
+    .timeline-dot.yellow {
+      background: var(--yellow-bg);
+      border: 2px solid rgba(234, 179, 8, 0.3);
+    }
+    .timeline-dot.yellow svg { fill: var(--yellow); }
+    .timeline-content {
+      flex: 1;
+    }
+    .timeline-content p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .timeline-content .time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ===== Notification Preview ===== */
+    .notification-preview {
+      margin-top: 16px;
+    }
+    .sms-preview {
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      position: relative;
+    }
+    .sms-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sms-header .sms-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .sms-header .sms-icon svg {
+      width: 14px;
+      height: 14px;
+      fill: white;
+    }
+    .sms-header span {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .sms-body {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--text-primary);
+    }
+
+    /* ===== Appeal Section ===== */
+    .appeal-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .appeal-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-input);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .appeal-option:hover {
+      border-color: var(--primary-light);
+      background: var(--blue-bg);
+    }
+    .appeal-option .appeal-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .appeal-option .appeal-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--text-secondary);
+    }
+    .appeal-option .appeal-text h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .appeal-option .appeal-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ===== Quote ===== */
+    .quote-banner {
+      background: var(--blue-bg);
+      border: 1px solid rgba(30, 64, 175, 0.2);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .quote-banner .quote-mark {
+      font-size: 28px;
+      line-height: 1;
+      color: var(--primary-light);
+      flex-shrink: 0;
+      font-weight: 700;
+    }
+    .quote-banner p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .quote-banner .quote-attr {
+      font-style: normal;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ===== Divider ===== */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
+    }
+
+    /* ===== Helper ===== */
+    .text-center { text-align: center; }
+    .mt-12 { margin-top: 12px; }
+    .mt-16 { margin-top: 16px; }
+    .mt-20 { margin-top: 20px; }
+    .mb-8 { margin-bottom: 8px; }
+    .mb-12 { margin-bottom: 12px; }
+    .flex-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .btn-row .btn { flex: 1; }
+
+    /* ===== Section Header ===== */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 480px) {
+      .step-label { display: none; }
+      .step-item:not(:last-child)::after { width: 20px; }
+      .field-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+    }
+
+    /* ===== Scrollbar ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ===== Footer ===== */
+    .footer {
+      text-align: center;
+      padding: 24px 0;
+      margin-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .footer p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .footer a {
+      color: var(--primary-light);
+    }
+
+    /* ===== Submission animation ===== */
+    .submission-progress {
+      display: none;
+      padding: 32px 20px;
+      text-align: center;
+    }
+    .submission-progress.active { display: block; }
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-primary);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    .progress-steps {
+      text-align: left;
+      margin-top: 16px;
+    }
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+    .progress-step.done {
+      color: var(--green);
+    }
+    .progress-step.current {
+      color: var(--text-primary);
+    }
+    .progress-step-icon {
+      width: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-brand">
+        <div class="header-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="white"/></svg>
+        </div>
+        <h1>OphthoCode AI</h1>
+      </div>
+      <p class="header-subtitle">Prior Authorization Agent</p>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="steps">
+      <div class="step-item active" data-step="1">
+        <div class="step-num">1</div>
+        <span class="step-label">Note</span>
+      </div>
+      <div class="step-item" data-step="2">
+        <div class="step-num">2</div>
+        <span class="step-label">Extract</span>
+      </div>
+      <div class="step-item" data-step="3">
+        <div class="step-num">3</div>
+        <span class="step-label">Review</span>
+      </div>
+      <div class="step-item" data-step="4">
+        <div class="step-num">4</div>
+        <span class="step-label">Submit</span>
+      </div>
+      <div class="step-item" data-step="5">
+        <div class="step-num">5</div>
+        <span class="step-label">Status</span>
+      </div>
+      <div class="step-item" data-step="6">
+        <div class="step-num">6</div>
+        <span class="step-label">Notify</span>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 1: Paste Clinical Note ==================== -->
+    <div class="section active" id="section-1">
+      <div class="quote-banner">
+        <span class="quote-mark">"</span>
+        <div>
+          <p>Everyone has a problem with prior authorization... it's just manual transcription from one screen to another.</p>
+          <span class="quote-attr">— Dr. Roman Krivochenitser, Ophthalmologist</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="icon" style="background: var(--blue-bg); border: 1px solid rgba(59,130,246,0.2);">
+            <svg viewBox="0 0 24 24" fill="var(--primary-light)"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/></svg>
+          </div>
+          <h2>Paste Clinical Note</h2>
+        </div>
+
+        <div class="examples-label">Quick Demo — Select a case:</div>
+        <div class="example-chips">
+          <div class="example-chip" onclick="loadExample(0)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4"/></svg>
+            Cataract Surgery
+          </div>
+          <div class="example-chip" onclick="loadExample(1)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+            Glaucoma Meds
+          </div>
+          <div class="example-chip" onclick="loadExample(2)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>
+            Retinal Injection
+          </div>
+        </div>
+
+        <textarea id="clinical-note" placeholder="Paste the clinical note here...&#10;&#10;Example: Patient presents for evaluation of visually significant cataract OS. BCVA 20/60 OS, glare testing positive..."></textarea>
+
+        <button class="btn btn-primary mt-16" id="btn-extract" onclick="runExtraction()" disabled>
+          <svg viewBox="0 0 24 24" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-4.5 16H9.5v-2h5v2zm3.5-4H6v-2h12v2zm0-4H6V9h12v2z"/></svg>
+          Extract with AI
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 2: AI Processing ==================== -->
+    <div class="section" id="section-2">
+      <div class="card">
+        <div class="ai-processing active" id="ai-processing">
+          <div class="ai-spinner"></div>
+          <p class="ai-label">OphthoCode AI Agent</p>
+          <p>Analyzing clinical note...</p>
+          <p style="font-size:12px; color: var(--text-muted); margin-top: 8px;" id="ai-status-text">Identifying patient demographics</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 3: Review Form ==================== -->
+    <div class="section" id="section-3">
+      <div class="card">
+        <div class="card-header">
+          <div class="icon" style="background: var(--green-bg); border: 1px solid rgba(34,197,94,0.2);">
+            <svg viewBox="0 0 24 24" fill="var(--green)"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          </div>
+          <h2>AI Extraction Complete</h2>
+        </div>
+
+        <p class="section-title">Patient Information</p>
+        <div class="extracted-fields">
+          <div class="field-row">
+            <div class="form-group">
+              <div class="form-label">
+                <label>Patient Name</label>
+                <span class="confidence-badge confidence-high"><span class="confidence-dot"></span>98%</span>
+              </div>
+              <input type="text" id="f-name">
+            </div>
+            <div class="form-group">
+              <div class="form-label">
+                <label>Date of Birth</label>
+                <span class="confidence-badge confidence-high"><span class="confidence-dot"></span>97%</span>
+              </div>
+              <input type="text" id="f-dob">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">
+              <label>Insurance</label>
+              <span class="confidence-badge confidence-high"><span class="confidence-dot"></span>95%</span>
+            </div>
+            <input type="text" id="f-insurance">
+          </div>
+          <div class="form-group">
+            <div class="form-label">
+              <label>Member ID</label>
+              <span class="confidence-badge confidence-high"><span class="confidence-dot"></span>96%</span>
+            </div>
+            <input type="text" id="f-memberid">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <p class="section-title">Clinical Details</p>
+        <div class="extracted-fields">
+          <div class="form-group">
+            <div class="form-label">
+              <label>Diagnosis (ICD-10)</label>
+              <span class="confidence-badge confidence-high"><span class="confidence-dot"></span>99%</span>
+            </div>
+            <input type="text" id="f-diagnosis">
+          </div>
+          <div class="form-group">
+            <div class="form-label">
+              <label>Procedure / Medication Requested</label>
+              <span class="confidence-badge confidence-high"><span class="confidence-dot"></span>97%</span>
+            </div>
+            <input type="text" id="f-procedure">
+          </div>
+          <div class="form-group">
+            <div class="form-label">
+              <label>CPT Code</label>
+              <span class="confidence-badge confidence-high"><span class="confidence-dot"></span>94%</span>
+            </div>
+            <input type="text" id="f-cpt">
+          </div>
+          <div class="form-group">
+            <div class="form-label">
+              <label>Clinical Justification</label>
+              <span class="confidence-badge confidence-medium"><span class="confidence-dot"></span>88%</span>
+            </div>
+            <textarea id="f-justification" style="min-height: 80px;"></textarea>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <p class="section-title">Medications Tried & Failed</p>
+        <ul class="med-list" id="med-list"></ul>
+
+        <div class="divider"></div>
+        <p class="section-title">Urgency</p>
+        <div class="form-group">
+          <select id="f-urgency">
+            <option value="routine">Routine</option>
+            <option value="urgent">Urgent</option>
+            <option value="emergent">Emergent</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-outline btn-sm" onclick="goToStep(1)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Back
+          </button>
+          <button class="btn btn-primary" onclick="goToStep(4)">
+            Review & Submit
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 4: Submit ==================== -->
+    <div class="section" id="section-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="icon" style="background: var(--blue-bg); border: 1px solid rgba(59,130,246,0.2);">
+            <svg viewBox="0 0 24 24" fill="var(--primary-light)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </div>
+          <h2>Submission Summary</h2>
+        </div>
+
+        <div id="summary-details"></div>
+
+        <div class="divider"></div>
+
+        <div class="form-group">
+          <div class="form-label">
+            <label>Submit To</label>
+          </div>
+          <select id="f-portal">
+            <option value="covermymeds">CoverMyMeds</option>
+            <option value="surescripts">Surescripts ePA</option>
+            <option value="manual">Manual Fax</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-outline btn-sm" onclick="goToStep(3)">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Edit
+          </button>
+          <button class="btn btn-green" onclick="submitAuth()">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            Submit to Insurance
+          </button>
+        </div>
+      </div>
+
+      <!-- Submission Progress -->
+      <div class="card">
+        <div class="submission-progress" id="submission-progress">
+          <p class="ai-label">Submitting Prior Authorization</p>
+          <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <div class="progress-steps" id="progress-steps">
+            <div class="progress-step" data-idx="0">
+              <span class="progress-step-icon">○</span>
+              Connecting to insurance portal...
+            </div>
+            <div class="progress-step" data-idx="1">
+              <span class="progress-step-icon">○</span>
+              Validating patient eligibility...
+            </div>
+            <div class="progress-step" data-idx="2">
+              <span class="progress-step-icon">○</span>
+              Transmitting authorization request...
+            </div>
+            <div class="progress-step" data-idx="3">
+              <span class="progress-step-icon">○</span>
+              Awaiting confirmation...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== STEP 5: Status ==================== -->
+    <div class="section" id="section-5">
+      <div class="card status-card" id="status-card">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div class="card" id="auth-details-card" style="display:none;">
+        <p class="section-title">Authorization Details</p>
+        <div id="auth-detail-rows"></div>
+        <div class="divider"></div>
+        <p class="section-title">Activity Timeline</p>
+        <div class="timeline" id="timeline"></div>
+      </div>
+
+      <div class="btn-row" id="status-actions" style="display:none;"></div>
+    </div>
+
+    <!-- ==================== STEP 6: Notification ==================== -->
+    <div class="section" id="section-6">
+      <div class="card" id="notification-card">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div class="btn-row mt-16">
+        <button class="btn btn-outline" onclick="resetApp()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+          New Authorization
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>OphthoCode AI — Prior Auth Agent Prototype</p>
+      <p style="margin-top:4px;">Built by Oliver Stamatoski & Dr. Roman Krivochenitser</p>
+    </div>
+  </div>
+
+  <script>
+    // ========================
+    // DEMO DATA
+    // ========================
+    const exampleNotes = [
+      {
+        label: 'Cataract Surgery',
+        note: `OPHTHALMOLOGY CLINICAL NOTE
+Date: 03/28/2026
+Provider: Roman Krivochenitser, MD
+
+Patient: Margaret Thompson
+DOB: 05/14/1952
+Insurance: Aetna Medicare Advantage — Member ID: AMG8847291
+
+Chief Complaint: Blurred vision and glare OS, progressive over 8 months.
+
+History of Present Illness:
+74-year-old female presents with visually significant cataract of the left eye. Patient reports increasing difficulty with reading, driving at night, and recognizing faces. Glare from oncoming headlights has become unsafe. Conservative management with updated refraction was attempted 6 months ago without meaningful improvement.
+
+Examination:
+BCVA OD: 20/25 (with correction)
+BCVA OS: 20/70 (best corrected, no improvement with refraction)
+IOP: 14 mmHg OD, 16 mmHg OS
+Slit lamp: Grade 3+ nuclear sclerotic cataract OS, 1+ NS cataract OD
+Dilated fundus: Normal macula and periphery OU
+Glare testing: BCVA drops to 20/100 OS with brightness acuity tester (BAT)
+
+Assessment:
+1. Age-related nuclear sclerotic cataract, left eye (H25.11)
+2. Cataract, right eye — mild, monitoring
+
+Plan:
+Recommend cataract extraction with posterior chamber IOL implantation, left eye. Patient has failed conservative management. Visual function significantly impacts ADLs and driving safety. Surgery is medically necessary.
+
+Requesting prior authorization for: Cataract surgery with IOL (CPT 66984) OS.`,
+        extraction: {
+          name: 'Margaret Thompson',
+          dob: '05/14/1952',
+          insurance: 'Aetna Medicare Advantage',
+          memberId: 'AMG8847291',
+          diagnosis: 'Age-related nuclear sclerotic cataract, left eye (H25.11)',
+          procedure: 'Cataract extraction with posterior chamber IOL implantation, OS',
+          cpt: '66984 — Cataract surgery with IOL, 1 stage',
+          justification: 'BCVA 20/70 OS, dropping to 20/100 with glare testing (BAT). Patient reports functional impairment: difficulty reading, driving at night, and recognizing faces. 6-month trial of conservative management (updated refraction) failed. Grade 3+ nuclear sclerotic cataract confirmed on slit lamp. Surgery is medically necessary to restore visual function and ADL independence.',
+          meds: [
+            'Updated refraction/glasses — no improvement in BCVA (6 months ago)',
+            'Conservative observation — progressive worsening over 8 months'
+          ],
+          urgency: 'routine',
+          outcome: 'approved',
+          authNumber: 'AUTH-2026-4481927',
+          copay: null
+        }
+      },
+      {
+        label: 'Glaucoma Medication',
+        note: `OPHTHALMOLOGY CLINICAL NOTE
+Date: 03/28/2026
+Provider: Roman Krivochenitser, MD
+
+Patient: David Chen
+DOB: 11/23/1968
+Insurance: Blue Cross Blue Shield PPO — Member ID: BCB5539102
+
+Chief Complaint: Elevated IOP, inadequate control on current regimen.
+
+History of Present Illness:
+57-year-old male with primary open-angle glaucoma (POAG) diagnosed 3 years ago. Currently on latanoprost 0.005% qhs OU and timolol 0.5% BID OU. Despite compliance (verified by pharmacy refill records), IOP remains above target. Recent visual field testing shows early superior arcuate defect OD.
+
+Medications Tried:
+1. Latanoprost 0.005% qhs OU — current, inadequate monotherapy (IOP 24→19, target <16)
+2. Timolol 0.5% BID OU — added 12 months ago, IOP reduced to 18 but still above target
+3. Brimonidine 0.2% TID OU — tried for 4 months, discontinued due to severe allergic conjunctivitis
+4. Dorzolamide 2% TID OU — tried for 3 months, discontinued due to corneal decompensation (pre-existing low endothelial cell count)
+
+Examination:
+BCVA: 20/20 OU
+IOP: 19 mmHg OD, 18 mmHg OU (on current regimen, target <16)
+Gonioscopy: Open angles, grade 4 OU
+OCT RNFL: Thinning inferior OD (borderline OS)
+Visual field (HVF 24-2): Early superior arcuate defect OD, full field OS
+CCT: 531 OD, 528 OS
+
+Assessment:
+1. Primary open-angle glaucoma, bilateral, progressing (H40.1113)
+2. Inadequate IOP control on maximally tolerated medical therapy
+
+Plan:
+Requesting prior authorization for Vyzulta (latanoprostene bunod 0.024%) qhs OU as replacement for latanoprost. Patient has failed or is intolerant to 4 classes of topical glaucoma medications. Vyzulta's dual mechanism (prostaglandin + nitric oxide) offers additional IOP lowering beyond conventional prostaglandins. Next step if denied: SLT laser.
+
+Requesting prior authorization for: Vyzulta (latanoprostene bunod 0.024%) ophthalmic solution.`,
+        extraction: {
+          name: 'David Chen',
+          dob: '11/23/1968',
+          insurance: 'Blue Cross Blue Shield PPO',
+          memberId: 'BCB5539102',
+          diagnosis: 'Primary open-angle glaucoma, bilateral, progressing (H40.1113)',
+          procedure: 'Vyzulta (latanoprostene bunod 0.024%) ophthalmic solution qhs OU',
+          cpt: 'Rx — NDC 51167-0100-01 (Vyzulta 0.024%)',
+          justification: 'POAG with documented progression: early superior arcuate defect OD on HVF 24-2, RNFL thinning on OCT. IOP remains 18-19 mmHg on dual therapy (target <16). Patient has failed or is intolerant to 4 medication classes: prostaglandin (inadequate monotherapy), beta-blocker (insufficient additional lowering), alpha-agonist (allergic conjunctivitis), and CAI (corneal decompensation). Vyzulta offers dual-mechanism IOP lowering as step-up therapy before surgical intervention.',
+          meds: [
+            'Latanoprost 0.005% — inadequate monotherapy (IOP 24→19, target <16)',
+            'Timolol 0.5% BID — added, IOP still 18 mmHg (above target)',
+            'Brimonidine 0.2% TID — discontinued: severe allergic conjunctivitis (4 months)',
+            'Dorzolamide 2% TID — discontinued: corneal decompensation (3 months)'
+          ],
+          urgency: 'urgent',
+          outcome: 'approved-copay',
+          authNumber: 'AUTH-2026-4481953',
+          copay: '$45/month (Tier 3 preferred brand)'
+        }
+      },
+      {
+        label: 'Retinal Injection',
+        note: `OPHTHALMOLOGY CLINICAL NOTE
+Date: 03/28/2026
+Provider: Roman Krivochenitser, MD
+
+Patient: Rosa Martinez
+DOB: 08/07/1959
+Insurance: UnitedHealthcare Choice Plus — Member ID: UHC7720384
+
+Chief Complaint: Decreased central vision OD, 3 weeks.
+
+History of Present Illness:
+66-year-old female with history of non-exudative (dry) age-related macular degeneration OU, now presenting with acute central vision loss OD. Patient noticed sudden distortion 3 weeks ago with difficulty reading. Amsler grid shows central metamorphopsia OD.
+
+Medications Tried:
+1. AREDS2 vitamins — ongoing for 4 years for dry AMD, no prevention of conversion
+2. Avastin (bevacizumab) 1.25mg intravitreal OD x3 injections — suboptimal response, persistent subretinal fluid on OCT after 3 monthly injections
+3. Lucentis (ranibizumab) 0.5mg intravitreal OD x2 injections — partial response but fluid recurrence within 3 weeks
+
+Examination:
+BCVA OD: 20/80 (decreased from 20/40 baseline 6 months ago)
+BCVA OS: 20/30
+IOP: 15 mmHg OU
+Anterior segment: WNL OU
+Dilated fundus OD: Subretinal hemorrhage nasal to fovea, pigment epithelial detachment (PED), drusen
+Dilated fundus OS: Extensive drusen, no CNV
+OCT OD: Subretinal fluid, PED height 380 microns, CMT 412 microns
+OCT OS: Drusen, dry
+FA/ICG OD: Classic CNV with active leakage subfoveal
+
+Assessment:
+1. Neovascular (wet) age-related macular degeneration, right eye (H35.3211)
+2. Non-exudative AMD, left eye (H35.31)
+
+Plan:
+Requesting prior authorization for Eylea (aflibercept) 2mg intravitreal injection OD. Patient has demonstrated suboptimal response to bevacizumab (3 injections) and ranibizumab (2 injections) with persistent/recurrent subretinal fluid. Aflibercept has superior VEGF-A and PlGF binding and is indicated for treatment-resistant wet AMD. Loading dose: 3 monthly injections, then treat-and-extend protocol.
+
+Requesting prior authorization for: Eylea (aflibercept) 2mg intravitreal injection x 3 (loading dose) + ongoing treat-and-extend.`,
+        extraction: {
+          name: 'Rosa Martinez',
+          dob: '08/07/1959',
+          insurance: 'UnitedHealthcare Choice Plus',
+          memberId: 'UHC7720384',
+          diagnosis: 'Neovascular (wet) AMD, right eye (H35.3211)',
+          procedure: 'Eylea (aflibercept) 2mg intravitreal injection OD — loading dose x3 + treat-and-extend',
+          cpt: '67028 — Intravitreal injection + J0178 (Eylea)',
+          justification: 'Wet AMD OD with active CNV on FA/ICG, subretinal fluid and PED on OCT (CMT 412μm). BCVA declined from 20/40 to 20/80 over 6 months. Patient failed bevacizumab (3 injections: persistent subretinal fluid) and ranibizumab (2 injections: fluid recurrence within 3 weeks). Aflibercept\'s dual VEGF-A/PlGF binding mechanism is indicated for anti-VEGF treatment-resistant neovascular AMD.',
+          meds: [
+            'AREDS2 vitamins — ongoing 4 years, did not prevent wet conversion',
+            'Avastin (bevacizumab) 1.25mg x3 — suboptimal response, persistent subretinal fluid',
+            'Lucentis (ranibizumab) 0.5mg x2 — partial response, fluid recurrence within 3 weeks'
+          ],
+          urgency: 'urgent',
+          outcome: 'denied',
+          authNumber: null,
+          copay: null,
+          denialReason: 'Step therapy requirement: Insurer requires minimum 6 injections of bevacizumab before authorizing aflibercept. Only 3 bevacizumab injections documented.'
+        }
+      }
+    ];
+
+    // ========================
+    // STATE
+    // ========================
+    let currentStep = 1;
+    let currentData = null;
+    let currentExampleIdx = -1;
+
+    // ========================
+    // STEP NAVIGATION
+    // ========================
+    function goToStep(step) {
+      currentStep = step;
+      // Update step indicators
+      document.querySelectorAll('.step-item').forEach(el => {
+        const s = parseInt(el.dataset.step);
+        el.classList.remove('active', 'completed');
+        if (s === step) el.classList.add('active');
+        else if (s < step) el.classList.add('completed');
+      });
+      // Show/hide sections
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      const target = document.getElementById(`section-${step}`);
+      if (target) target.classList.add('active');
+
+      // Step-specific logic
+      if (step === 4) buildSummary();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ========================
+    // LOAD EXAMPLE NOTE
+    // ========================
+    function loadExample(idx) {
+      currentExampleIdx = idx;
+      const textarea = document.getElementById('clinical-note');
+      textarea.value = exampleNotes[idx].note;
+      document.getElementById('btn-extract').disabled = false;
+      // Highlight selected chip
+      document.querySelectorAll('.example-chip').forEach((c, i) => {
+        c.classList.toggle('selected', i === idx);
+      });
+    }
+
+    // Enable button on manual typing
+    document.getElementById('clinical-note').addEventListener('input', function() {
+      document.getElementById('btn-extract').disabled = !this.value.trim();
+    });
+
+    // ========================
+    // AI EXTRACTION (simulated)
+    // ========================
+    function runExtraction() {
+      goToStep(2);
+      const statusTexts = [
+        'Identifying patient demographics...',
+        'Extracting insurance information...',
+        'Parsing diagnosis codes (ICD-10)...',
+        'Mapping procedure and CPT codes...',
+        'Analyzing medications tried and failed...',
+        'Generating clinical justification...',
+        'Calculating confidence scores...',
+        'Finalizing extraction...'
+      ];
+      let i = 0;
+      const statusEl = document.getElementById('ai-status-text');
+      const interval = setInterval(() => {
+        i++;
+        if (i < statusTexts.length) {
+          statusEl.textContent = statusTexts[i];
+        } else {
+          clearInterval(interval);
+        }
+      }, 350);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        populateForm();
+        goToStep(3);
+      }, 2800);
+    }
+
+    function populateForm() {
+      // Use demo data from the selected example, or first example as fallback
+      const idx = currentExampleIdx >= 0 ? currentExampleIdx : 0;
+      currentData = exampleNotes[idx].extraction;
+
+      document.getElementById('f-name').value = currentData.name;
+      document.getElementById('f-dob').value = currentData.dob;
+      document.getElementById('f-insurance').value = currentData.insurance;
+      document.getElementById('f-memberid').value = currentData.memberId;
+      document.getElementById('f-diagnosis').value = currentData.diagnosis;
+      document.getElementById('f-procedure').value = currentData.procedure;
+      document.getElementById('f-cpt').value = currentData.cpt;
+      document.getElementById('f-justification').value = currentData.justification;
+      document.getElementById('f-urgency').value = currentData.urgency;
+
+      // Populate meds list
+      const medList = document.getElementById('med-list');
+      medList.innerHTML = currentData.meds.map(m =>
+        `<li><span class="med-icon">✗</span>${m}</li>`
+      ).join('');
+    }
+
+    // ========================
+    // SUBMISSION SUMMARY
+    // ========================
+    function buildSummary() {
+      const details = document.getElementById('summary-details');
+      const fields = [
+        ['Patient', document.getElementById('f-name').value],
+        ['DOB', document.getElementById('f-dob').value],
+        ['Insurance', document.getElementById('f-insurance').value],
+        ['Member ID', document.getElementById('f-memberid').value],
+        ['Diagnosis', document.getElementById('f-diagnosis').value],
+        ['Procedure/Rx', document.getElementById('f-procedure').value],
+        ['CPT/NDC', document.getElementById('f-cpt').value],
+        ['Urgency', document.getElementById('f-urgency').value.charAt(0).toUpperCase() + document.getElementById('f-urgency').value.slice(1)],
+      ];
+      details.innerHTML = fields.map(([label, value]) =>
+        `<div class="auth-detail"><span class="auth-detail-label">${label}</span><span class="auth-detail-value">${value}</span></div>`
+      ).join('');
+    }
+
+    // ========================
+    // SUBMIT TO INSURANCE
+    // ========================
+    function submitAuth() {
+      const progress = document.getElementById('submission-progress');
+      const bar = document.getElementById('progress-bar');
+      progress.classList.add('active');
+
+      const steps = document.querySelectorAll('#progress-steps .progress-step');
+      let i = 0;
+      const percents = [25, 50, 80, 100];
+
+      function advanceStep() {
+        if (i > 0) {
+          steps[i - 1].classList.remove('current');
+          steps[i - 1].classList.add('done');
+          steps[i - 1].querySelector('.progress-step-icon').textContent = '✓';
+        }
+        if (i < steps.length) {
+          steps[i].classList.add('current');
+          steps[i].querySelector('.progress-step-icon').textContent = '◉';
+          bar.style.width = percents[i] + '%';
+          i++;
+          setTimeout(advanceStep, 800);
+        } else {
+          setTimeout(() => {
+            progress.classList.remove('active');
+            showStatus();
+          }, 600);
+        }
+      }
+      advanceStep();
+    }
+
+    // ========================
+    // STATUS
+    // ========================
+    function showStatus() {
+      goToStep(5);
+      const card = document.getElementById('status-card');
+      const detailsCard = document.getElementById('auth-details-card');
+      const actions = document.getElementById('status-actions');
+      const outcome = currentData.outcome;
+
+      if (outcome === 'approved') {
+        card.innerHTML = `
+          <div class="status-icon approved">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          </div>
+          <div class="status-title" style="color: var(--green);">Approved</div>
+          <div class="status-subtitle">Prior authorization has been approved by the insurer.</div>
+          <span class="status-badge badge-approved"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;"></span> Authorized</span>
+        `;
+        showAuthDetails('approved');
+        actions.style.display = 'flex';
+        actions.innerHTML = `<button class="btn btn-green" onclick="goToStep(6); showNotification('approved');">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
+          Notify Patient</button>`;
+      } else if (outcome === 'approved-copay') {
+        card.innerHTML = `
+          <div class="status-icon approved">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
+          </div>
+          <div class="status-title" style="color: var(--green);">Approved with Co-pay</div>
+          <div class="status-subtitle">Authorization granted. Patient co-pay applies.</div>
+          <span class="status-badge badge-copay"><span style="width:8px;height:8px;border-radius:50%;background:var(--primary-light);display:inline-block;"></span> ${currentData.copay}</span>
+        `;
+        showAuthDetails('approved-copay');
+        actions.style.display = 'flex';
+        actions.innerHTML = `<button class="btn btn-green" onclick="goToStep(6); showNotification('approved-copay');">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
+          Notify Patient</button>`;
+      } else {
+        card.innerHTML = `
+          <div class="status-icon denied">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+          </div>
+          <div class="status-title" style="color: var(--red);">Denied</div>
+          <div class="status-subtitle">${currentData.denialReason || 'Prior authorization was denied by the insurer.'}</div>
+          <span class="status-badge badge-denied"><span style="width:8px;height:8px;border-radius:50%;background:var(--red);display:inline-block;"></span> Authorization Denied</span>
+        `;
+        showAuthDetails('denied');
+        actions.style.display = 'flex';
+        actions.innerHTML = `<button class="btn btn-red" onclick="goToStep(6); showNotification('denied');">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+          View Appeal Options</button>`;
+      }
+    }
+
+    function showAuthDetails(outcome) {
+      const card = document.getElementById('auth-details-card');
+      card.style.display = 'block';
+      const rows = document.getElementById('auth-detail-rows');
+      const timeline = document.getElementById('timeline');
+
+      const authNum = currentData.authNumber || 'N/A';
+      const portal = document.getElementById('f-portal').value;
+      const portalNames = { covermymeds: 'CoverMyMeds', surescripts: 'Surescripts ePA', manual: 'Manual Fax' };
+
+      let detailRows = [
+        ['Auth Number', authNum],
+        ['Submitted Via', portalNames[portal] || portal],
+        ['Patient', currentData.name],
+        ['Insurance', currentData.insurance],
+        ['Procedure/Rx', currentData.procedure],
+      ];
+      if (outcome === 'approved-copay') {
+        detailRows.push(['Co-pay', currentData.copay]);
+      }
+      rows.innerHTML = detailRows.map(([l, v]) =>
+        `<div class="auth-detail"><span class="auth-detail-label">${l}</span><span class="auth-detail-value">${v}</span></div>`
+      ).join('');
+
+      const now = new Date();
+      const timeStr = (mins) => {
+        const d = new Date(now.getTime() - mins * 60000);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      };
+
+      let timelineItems;
+      if (outcome === 'denied') {
+        timelineItems = [
+          { color: 'blue', icon: '●', text: 'Authorization request submitted', time: timeStr(8) },
+          { color: 'yellow', icon: '●', text: 'Request received by insurance', time: timeStr(5) },
+          { color: 'blue', icon: '●', text: 'Clinical review initiated', time: timeStr(3) },
+          { color: 'yellow', icon: '●', text: 'Additional documentation requested', time: timeStr(2) },
+          { color: 'yellow', icon: '●', text: 'Step therapy requirement flagged', time: timeStr(1) },
+        ];
+      } else {
+        timelineItems = [
+          { color: 'blue', icon: '●', text: 'Authorization request submitted', time: timeStr(5) },
+          { color: 'yellow', icon: '●', text: 'Request received by insurance', time: timeStr(3) },
+          { color: 'blue', icon: '●', text: 'Clinical review completed', time: timeStr(1) },
+          { color: 'green', icon: '●', text: outcome === 'approved-copay' ? 'Approved — co-pay assigned' : 'Authorization approved', time: timeStr(0) },
+        ];
+      }
+
+      const dotSvg = `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg>`;
+      const checkSvg = `<svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>`;
+
+      timeline.innerHTML = timelineItems.map((item, i) =>
+        `<div class="timeline-item">
+          <div class="timeline-dot ${item.color}">${i === timelineItems.length - 1 && outcome !== 'denied' ? checkSvg : dotSvg}</div>
+          <div class="timeline-content">
+            <p>${item.text}</p>
+            <div class="time">${item.time}</div>
+          </div>
+        </div>`
+      ).join('');
+    }
+
+    // ========================
+    // NOTIFICATIONS
+    // ========================
+    function showNotification(outcome) {
+      const card = document.getElementById('notification-card');
+      const firstName = currentData.name.split(' ')[0];
+
+      if (outcome === 'approved') {
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="icon" style="background: var(--green-bg); border: 1px solid rgba(34,197,94,0.2);">
+              <svg viewBox="0 0 24 24" fill="var(--green)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+            </div>
+            <h2>Patient Notification</h2>
+          </div>
+          <p class="section-title">SMS Preview</p>
+          <div class="sms-preview">
+            <div class="sms-header">
+              <div class="sms-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+              <span>Text Message to ${firstName}</span>
+            </div>
+            <div class="sms-body">
+              Hi ${firstName}, great news! Your insurance (${currentData.insurance}) has approved the prior authorization for your upcoming ${currentData.procedure.split(',')[0].split('—')[0].trim()}. Our office will be in touch to schedule your appointment. If you have any questions, please call us at (555) 234-5678. — Dr. Krivochenitser's Office
+            </div>
+          </div>
+          <div class="btn-row mt-16">
+            <button class="btn btn-green btn-sm">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              Send SMS
+            </button>
+            <button class="btn btn-outline btn-sm">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              Send Email
+            </button>
+          </div>
+        `;
+      } else if (outcome === 'approved-copay') {
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="icon" style="background: var(--green-bg); border: 1px solid rgba(34,197,94,0.2);">
+              <svg viewBox="0 0 24 24" fill="var(--green)"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+            </div>
+            <h2>Patient Notification</h2>
+          </div>
+          <p class="section-title">SMS Preview</p>
+          <div class="sms-preview">
+            <div class="sms-header">
+              <div class="sms-icon"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+              <span>Text Message to ${firstName}</span>
+            </div>
+            <div class="sms-body">
+              Hi ${firstName}, your insurance (${currentData.insurance}) has approved the prior authorization for ${currentData.procedure.split(',')[0].split('—')[0].trim()}. Please note: your co-pay will be ${currentData.copay}. Our office will contact you to discuss next steps. Questions? Call us at (555) 234-5678. — Dr. Krivochenitser's Office
+            </div>
+          </div>
+          <div class="btn-row mt-16">
+            <button class="btn btn-green btn-sm">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              Send SMS
+            </button>
+            <button class="btn btn-outline btn-sm">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+              Send Email
+            </button>
+          </div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="card-header">
+            <div class="icon" style="background: var(--red-bg); border: 1px solid rgba(239,68,68,0.2);">
+              <svg viewBox="0 0 24 24" fill="var(--red)"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+            </div>
+            <h2>Denial — Appeal Options</h2>
+          </div>
+          <p style="font-size:13px; color: var(--text-secondary); margin-bottom: 16px;">
+            <strong style="color: var(--red);">Reason for Denial:</strong> ${currentData.denialReason || 'Not specified'}
+          </p>
+          <div class="appeal-options">
+            <div class="appeal-option" onclick="alert('Peer-to-peer review request initiated. A scheduling coordinator will call to arrange a time with the insurance medical director.')">
+              <div class="appeal-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1.02 1.02 0 0 0-1.02.24l-2.2 2.2a15.045 15.045 0 0 1-6.59-6.59l2.2-2.21a.96.96 0 0 0 .25-1A11.36 11.36 0 0 1 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1z"/></svg>
+              </div>
+              <div class="appeal-text">
+                <h4>Peer-to-Peer Review</h4>
+                <p>Request phone call with insurance medical director</p>
+              </div>
+            </div>
+            <div class="appeal-option" onclick="alert('Written appeal template generated. Attach additional clinical documentation and submit within 30 days.')">
+              <div class="appeal-icon">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 2l5 5h-5V4zM6 20V4h5v7h7v9H6z"/></svg>
+              </div>
+              <div class="appeal-text">
+                <h4>Written Appeal</h4>
+                <p>Generate appeal letter with clinical evidence</p>
+              </div>
+            </div>
+            <div class="appeal-option" onclick="alert('External review request submitted to independent review organization (IRO). Decision expected within 45 days.')">
+              <div class="appeal-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+              </div>
+              <div class="appeal-text">
+                <h4>External Review</h4>
+                <p>Submit to independent review organization</p>
+              </div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <p class="section-title">Notify Patient of Denial</p>
+          <div class="sms-preview">
+            <div class="sms-header">
+              <div class="sms-icon" style="background: var(--yellow);"><svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
+              <span>Text Message to ${firstName}</span>
+            </div>
+            <div class="sms-body">
+              Hi ${firstName}, we wanted to update you regarding your ${currentData.procedure.split(',')[0].split('—')[0].trim()} authorization. Your insurance has requested additional information, and our team is actively working on your behalf to resolve this. We will keep you updated. Please call (555) 234-5678 with any questions. — Dr. Krivochenitser's Office
+            </div>
+          </div>
+          <div class="btn-row mt-16">
+            <button class="btn btn-outline btn-sm" style="border-color: var(--yellow); color: var(--yellow);">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="var(--yellow)"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              Send SMS
+            </button>
+          </div>
+        `;
+      }
+    }
+
+    // ========================
+    // RESET
+    // ========================
+    function resetApp() {
+      currentStep = 1;
+      currentData = null;
+      currentExampleIdx = -1;
+      document.getElementById('clinical-note').value = '';
+      document.getElementById('btn-extract').disabled = true;
+      document.querySelectorAll('.example-chip').forEach(c => c.classList.remove('selected'));
+      // Reset submission progress
+      document.getElementById('submission-progress').classList.remove('active');
+      document.getElementById('progress-bar').style.width = '0%';
+      document.querySelectorAll('#progress-steps .progress-step').forEach(s => {
+        s.classList.remove('done', 'current');
+        s.querySelector('.progress-step-icon').textContent = '○';
+      });
+      // Hide dynamic cards
+      document.getElementById('auth-details-card').style.display = 'none';
+      document.getElementById('status-actions').style.display = 'none';
+      goToStep(1);
+    }
+  </script>
+</body>
+</html>
