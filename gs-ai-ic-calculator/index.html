@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G's AI IC Calculator — Automotive Commodity Intelligence</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-card: #12121a;
+    --bg-card-hover: #181824;
+    --border-subtle: #1e1e2e;
+    --accent-blue: #2d7aff;
+    --accent-blue-glow: rgba(45, 122, 255, 0.25);
+    --accent-red: #ff3b5c;
+    --accent-red-glow: rgba(255, 59, 92, 0.2);
+    --accent-green: #00e676;
+    --accent-green-glow: rgba(0, 230, 118, 0.2);
+    --accent-yellow: #ffd740;
+    --text-primary: #eaeaf0;
+    --text-secondary: #8888a0;
+    --text-metallic: linear-gradient(135deg, #c0c0d0, #f0f0ff, #a0a0b8);
+    --carbon-fiber: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.015) 2px,
+      rgba(255,255,255,0.015) 4px
+    );
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-pill: 50px;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+  }
+
+  /* ====== HERO HEADER ====== */
+  .hero {
+    position: relative;
+    padding: 48px 24px 40px;
+    text-align: center;
+    background: linear-gradient(180deg, #0e0e18 0%, var(--bg-primary) 100%);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--carbon-fiber);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+  }
+  .hero-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .hero-logo svg { filter: drop-shadow(0 0 12px var(--accent-blue-glow)); }
+  .hero-title {
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: var(--text-metallic);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-subtitle {
+    font-size: 0.95rem;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .hero-tagline {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    max-width: 520px;
+    margin: 0 auto 12px;
+  }
+  .hero-updated {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+  }
+
+  /* ====== CONTAINER ====== */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ====== SECTION TITLES ====== */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 40px 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border-subtle), transparent);
+  }
+
+  /* ====== KPI SUMMARY CARDS ====== */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeSlideUp 0.6s var(--transition) forwards;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-card.gainer::before { background: var(--accent-green); }
+  .kpi-card.loser::before { background: var(--accent-red); }
+  .kpi-card.stable::before { background: var(--accent-yellow); }
+  .kpi-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .kpi-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  .kpi-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-top: 4px;
+  }
+  .kpi-value.green { color: var(--accent-green); }
+  .kpi-value.red { color: var(--accent-red); }
+  .kpi-value.yellow { color: var(--accent-yellow); }
+
+  /* ====== COMMODITY CARDS ====== */
+  .commodity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 8px;
+  }
+  .commodity-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 24px;
+    position: relative;
+    transition: var(--transition);
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeSlideUp 0.6s var(--transition) forwards;
+  }
+  .commodity-card:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(45, 122, 255, 0.3);
+    box-shadow: 0 0 24px var(--accent-blue-glow);
+    transform: translateY(-2px);
+  }
+  .commodity-card:nth-child(1) { animation-delay: 0.1s; }
+  .commodity-card:nth-child(2) { animation-delay: 0.2s; }
+  .commodity-card:nth-child(3) { animation-delay: 0.3s; }
+  .commodity-card:nth-child(4) { animation-delay: 0.4s; }
+  .commodity-card:nth-child(5) { animation-delay: 0.5s; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .card-icon.aluminum { background: rgba(192, 192, 210, 0.12); color: #c0c0d2; }
+  .card-icon.steel { background: rgba(120, 144, 180, 0.12); color: #7890b4; }
+  .card-icon.magnesium { background: rgba(180, 140, 255, 0.12); color: #b48cff; }
+  .card-icon.polypropylene { background: rgba(255, 180, 60, 0.12); color: #ffb43c; }
+  .card-icon.copper { background: rgba(255, 140, 80, 0.12); color: #ff8c50; }
+  .card-icon.custom { background: rgba(45, 122, 255, 0.12); color: var(--accent-blue); }
+  .card-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+  .card-unit {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  .card-trend {
+    margin-left: auto;
+    font-size: 1.3rem;
+  }
+
+  .card-price {
+    font-size: 2.2rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .card-price .currency { color: var(--text-secondary); font-size: 1.2rem; font-weight: 600; }
+
+  .card-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .badge.green { background: rgba(0, 230, 118, 0.1); color: var(--accent-green); border: 1px solid rgba(0, 230, 118, 0.2); }
+  .badge.red { background: rgba(255, 59, 92, 0.1); color: var(--accent-red); border: 1px solid rgba(255, 59, 92, 0.2); }
+  .badge.yellow { background: rgba(255, 215, 64, 0.1); color: var(--accent-yellow); border: 1px solid rgba(255, 215, 64, 0.2); }
+  .badge-label { font-weight: 500; color: var(--text-secondary); }
+
+  .sparkline-container {
+    height: 48px;
+    position: relative;
+  }
+  .sparkline-container svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ====== MAIN CHART ====== */
+  .chart-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeSlideUp 0.6s 0.5s var(--transition) forwards;
+  }
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .chart-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .chart-toggle {
+    display: flex;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+  }
+  .chart-toggle button {
+    padding: 8px 18px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  .chart-toggle button.active {
+    background: var(--accent-blue);
+    color: #fff;
+  }
+  .chart-toggle button:hover:not(.active) {
+    color: var(--text-primary);
+  }
+  .chart-canvas-wrapper {
+    position: relative;
+    height: 360px;
+  }
+  .chart-canvas-wrapper canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* ====== ADD CUSTOM FORM ====== */
+  .custom-form-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 40px;
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeSlideUp 0.6s 0.6s var(--transition) forwards;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-family: inherit;
+    transition: var(--transition);
+  }
+  .form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px var(--accent-blue-glow);
+  }
+  .form-group input::placeholder { color: var(--text-secondary); opacity: 0.5; }
+  .form-group select option { background: var(--bg-card); }
+
+  .btn-add {
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #c0c0d0, #8888a0);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--bg-primary);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    letter-spacing: 0.5px;
+  }
+  .btn-add:hover {
+    background: linear-gradient(135deg, #e0e0f0, #b0b0c8);
+    box-shadow: 0 0 20px rgba(200, 200, 220, 0.25);
+    transform: translateY(-1px);
+  }
+  .btn-add:active { transform: translateY(0); }
+
+  .form-error {
+    color: var(--accent-red);
+    font-size: 0.8rem;
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* ====== FOOTER ====== */
+  footer {
+    text-align: center;
+    padding: 32px 20px 40px;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    border-top: 1px solid var(--border-subtle);
+    position: relative;
+  }
+  footer::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 200px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+  }
+
+  /* ====== ANIMATIONS ====== */
+  @keyframes fadeSlideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 768px) {
+    .hero { padding: 32px 16px 28px; }
+    .hero-title { font-size: 1.6rem; }
+    .container { padding: 0 14px; }
+    .commodity-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr; }
+    .chart-canvas-wrapper { height: 260px; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .card-price { font-size: 1.8rem; }
+  }
+  @media (max-width: 480px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .chart-header { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ====== HERO ====== -->
+<header class="hero">
+  <div class="hero-logo">
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none">
+      <rect width="44" height="44" rx="10" fill="#1a1a2e"/>
+      <path d="M12 30V18l6-6h8l6 6v12l-6 6h-8l-6-6z" stroke="#2d7aff" stroke-width="2" fill="none"/>
+      <circle cx="22" cy="22" r="5" fill="#2d7aff" opacity="0.7"/>
+      <path d="M22 14v16M14 22h16" stroke="#2d7aff" stroke-width="1.5" opacity="0.4"/>
+    </svg>
+    <div>
+      <div class="hero-subtitle">Automotive Commodity Intelligence</div>
+      <h1 class="hero-title">G's AI IC Calculator</h1>
+    </div>
+  </div>
+  <p class="hero-tagline">Real-time commodity intelligence for automotive procurement</p>
+  <p class="hero-updated" id="lastUpdated"></p>
+</header>
+
+<main class="container">
+
+  <!-- ====== KPI SUMMARY ====== -->
+  <div class="section-title">Market Summary</div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- ====== COMMODITY CARDS ====== -->
+  <div class="section-title">Commodity Tracker</div>
+  <div class="commodity-grid" id="commodityGrid"></div>
+
+  <!-- ====== MAIN CHART ====== -->
+  <div class="section-title">Historical Comparison</div>
+  <div class="chart-section">
+    <div class="chart-header">
+      <div class="chart-title">Commodity Prices 2022–2025</div>
+      <div class="chart-toggle">
+        <button class="active" data-type="bar" onclick="switchChart('bar')">Bar</button>
+        <button data-type="line" onclick="switchChart('line')">Line</button>
+      </div>
+    </div>
+    <div class="chart-canvas-wrapper">
+      <canvas id="mainChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ====== ADD CUSTOM ====== -->
+  <div class="section-title">Add Custom Commodity</div>
+  <div class="custom-form-section">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Commodity Name</label>
+        <input type="text" id="fName" placeholder="e.g. Lithium">
+      </div>
+      <div class="form-group">
+        <label>Unit</label>
+        <select id="fUnit">
+          <option value="per metric ton">per metric ton</option>
+          <option value="per short ton">per short ton</option>
+          <option value="per lb">per lb</option>
+          <option value="per kg">per kg</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Price 2022 ($)</label>
+        <input type="number" id="fP2022" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Price 2023 ($)</label>
+        <input type="number" id="fP2023" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Price 2024 ($)</label>
+        <input type="number" id="fP2024" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Price 2025 ($)</label>
+        <input type="number" id="fP2025" placeholder="0">
+      </div>
+    </div>
+    <button class="btn-add" onclick="addCustomCommodity()">Add to Dashboard</button>
+    <div class="form-error" id="formError">Please fill in all fields with valid values.</div>
+  </div>
+
+</main>
+
+<!-- ====== FOOTER ====== -->
+<footer>
+  Powered by G's AI IC Calculator &copy; 2025
+</footer>
+
+<script>
+// ========== DATA ==========
+const YEARS = [2022, 2023, 2024, 2025];
+const COLORS = ['#c0c0d2', '#7890b4', '#b48cff', '#ffb43c', '#ff8c50', '#2d7aff', '#00e676', '#ff3b5c', '#ffd740', '#40c4ff'];
+const ICON_CLASSES = ['aluminum', 'steel', 'magnesium', 'polypropylene', 'copper'];
+
+const ICONS = {
+  Aluminum: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-4 7 4v12"/><path d="M9 20v-6h6v6"/></svg>`,
+  'Steel (HRC)': `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>`,
+  Magnesium: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>`,
+  'Polypropylene (PP)': `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L2 12h3v8h14v-8h3L12 3z"/></svg>`,
+  Copper: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`
+};
+
+const DEFAULT_COMMODITIES = [
+  { name: 'Aluminum', unit: 'per metric ton', prices: [2700, 2250, 2400, 2500], iconClass: 'aluminum' },
+  { name: 'Steel (HRC)', unit: 'per short ton', prices: [900, 700, 650, 720], iconClass: 'steel' },
+  { name: 'Magnesium', unit: 'per metric ton', prices: [3800, 2600, 2200, 2100], iconClass: 'magnesium' },
+  { name: 'Polypropylene (PP)', unit: 'per metric ton', prices: [1400, 1200, 1100, 1150], iconClass: 'polypropylene' },
+  { name: 'Copper', unit: 'per metric ton', prices: [8800, 8500, 9200, 9500], iconClass: 'copper' }
+];
+
+function loadCustomCommodities() {
+  try { return JSON.parse(localStorage.getItem('customCommodities') || '[]'); } catch { return []; }
+}
+function saveCustomCommodities(list) {
+  localStorage.setItem('customCommodities', JSON.stringify(list));
+}
+function getAllCommodities() {
+  return [...DEFAULT_COMMODITIES, ...loadCustomCommodities()];
+}
+
+// ========== CALCULATIONS ==========
+function pctChange(oldVal, newVal) {
+  if (oldVal === 0) return 0;
+  return ((newVal - oldVal) / oldVal) * 100;
+}
+function trendInfo(pct) {
+  if (pct > 1) return { arrow: '↑', label: 'UP', cls: 'green' };
+  if (pct < -1) return { arrow: '↓', label: 'DOWN', cls: 'red' };
+  return { arrow: '→', label: 'FLAT', cls: 'yellow' };
+}
+function formatPrice(val) {
+  return val.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+function formatPct(val) {
+  const sign = val > 0 ? '+' : '';
+  return sign + val.toFixed(1) + '%';
+}
+
+// ========== SPARKLINE SVG ==========
+function buildSparkline(prices, color) {
+  const w = 200, h = 48, pad = 6;
+  const min = Math.min(...prices) * 0.95;
+  const max = Math.max(...prices) * 1.05;
+  const range = max - min || 1;
+  const points = prices.map((p, i) => {
+    const x = pad + (i / (prices.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((p - min) / range) * (h - pad * 2);
+    return `${x},${y}`;
+  });
+  const polyline = points.join(' ');
+  // area fill
+  const firstX = pad;
+  const lastX = pad + (w - pad * 2);
+  const areaPoints = `${firstX},${h - pad} ${polyline} ${lastX},${h - pad}`;
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <defs><linearGradient id="sg_${color.replace('#','')}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+    </linearGradient></defs>
+    <polygon points="${areaPoints}" fill="url(#sg_${color.replace('#','')})" />
+    <polyline points="${polyline}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${prices.map((p, i) => {
+      const x = pad + (i / (prices.length - 1)) * (w - pad * 2);
+      const y = h - pad - ((p - min) / range) * (h - pad * 2);
+      return `<circle cx="${x}" cy="${y}" r="3" fill="${color}" />`;
+    }).join('')}
+  </svg>`;
+}
+
+// ========== ANIMATED COUNTER ==========
+function animateCounters() {
+  document.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseFloat(el.dataset.count);
+    const duration = 1200;
+    const start = performance.now();
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    function tick(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = target * eased;
+      el.textContent = prefix + formatPrice(Math.round(current)) + suffix;
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+// ========== RENDER KPIs ==========
+function renderKPIs() {
+  const all = getAllCommodities();
+  const changes3y = all.map(c => ({ name: c.name, pct: pctChange(c.prices[0], c.prices[3]) }));
+  changes3y.sort((a, b) => b.pct - a.pct);
+  const gainer = changes3y[0];
+  const loser = changes3y[changes3y.length - 1];
+  const stableSorted = [...changes3y].sort((a, b) => Math.abs(a.pct) - Math.abs(b.pct));
+  const stable = stableSorted[0];
+
+  const kpis = [
+    { label: 'Biggest Gainer (3Y)', data: gainer, cls: 'gainer', colorCls: 'green' },
+    { label: 'Biggest Loser (3Y)', data: loser, cls: 'loser', colorCls: 'red' },
+    { label: 'Most Stable (3Y)', data: stable, cls: 'stable', colorCls: 'yellow' }
+  ];
+
+  document.getElementById('kpiGrid').innerHTML = kpis.map((k, i) => `
+    <div class="kpi-card ${k.cls}" style="animation-delay: ${i * 0.1}s">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-name">${k.data.name}</div>
+      <div class="kpi-value ${k.colorCls}">${formatPct(k.data.pct)}</div>
+    </div>
+  `).join('');
+}
+
+// ========== RENDER COMMODITY CARDS ==========
+function renderCommodityCards() {
+  const all = getAllCommodities();
+  document.getElementById('commodityGrid').innerHTML = all.map((c, i) => {
+    const currentPrice = c.prices[3];
+    const pct1y = pctChange(c.prices[2], c.prices[3]);
+    const pct3y = pctChange(c.prices[0], c.prices[3]);
+    const trend = trendInfo(pct3y);
+    const color = COLORS[i % COLORS.length];
+    const iconClass = c.iconClass || 'custom';
+    const icon = ICONS[c.name] || `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
+
+    return `
+    <div class="commodity-card" style="animation-delay: ${0.1 + i * 0.1}s">
+      <div class="card-header">
+        <div class="card-icon ${iconClass}">${icon}</div>
+        <div>
+          <div class="card-name">${c.name}</div>
+          <div class="card-unit">${c.unit}</div>
+        </div>
+        <div class="card-trend" style="color: var(--accent-${trend.cls})">${trend.arrow}</div>
+      </div>
+      <div class="card-price"><span class="currency">$</span><span data-count="${currentPrice}" data-prefix="" data-suffix="">0</span></div>
+      <div class="card-badges">
+        <div class="badge ${trendInfo(pct1y).cls}"><span class="badge-label">1Y</span> ${formatPct(pct1y)}</div>
+        <div class="badge ${trendInfo(pct3y).cls}"><span class="badge-label">3Y</span> ${formatPct(pct3y)}</div>
+      </div>
+      <div class="sparkline-container">${buildSparkline(c.prices, color)}</div>
+    </div>`;
+  }).join('');
+
+  animateCounters();
+}
+
+// ========== MAIN CHART ==========
+let mainChart = null;
+let currentChartType = 'bar';
+
+function buildMainChart(type) {
+  const all = getAllCommodities();
+  const ctx = document.getElementById('mainChart').getContext('2d');
+  if (mainChart) mainChart.destroy();
+
+  const datasets = all.map((c, i) => ({
+    label: c.name,
+    data: c.prices,
+    backgroundColor: COLORS[i % COLORS.length] + (type === 'bar' ? 'cc' : '22'),
+    borderColor: COLORS[i % COLORS.length],
+    borderWidth: type === 'line' ? 2.5 : 0,
+    borderRadius: type === 'bar' ? 6 : 0,
+    pointRadius: type === 'line' ? 4 : 0,
+    pointHoverRadius: type === 'line' ? 6 : 0,
+    tension: 0.3,
+    fill: type === 'line'
+  }));
+
+  mainChart = new Chart(ctx, {
+    type: type,
+    data: { labels: YEARS.map(String), datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#8888a0', padding: 16, usePointStyle: true, pointStyleWidth: 10, font: { size: 12 } }
+        },
+        tooltip: {
+          backgroundColor: '#1a1a2e',
+          titleColor: '#eaeaf0',
+          bodyColor: '#c0c0d0',
+          borderColor: '#2d7aff',
+          borderWidth: 1,
+          cornerRadius: 8,
+          padding: 12,
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: $${formatPrice(ctx.raw)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#8888a0', font: { size: 12 } }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: {
+            color: '#8888a0',
+            font: { size: 12 },
+            callback: v => '$' + formatPrice(v)
+          }
+        }
+      }
+    }
+  });
+}
+
+function switchChart(type) {
+  currentChartType = type;
+  document.querySelectorAll('.chart-toggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+  buildMainChart(type);
+}
+
+// ========== ADD CUSTOM ==========
+function addCustomCommodity() {
+  const name = document.getElementById('fName').value.trim();
+  const unit = document.getElementById('fUnit').value;
+  const p2022 = parseFloat(document.getElementById('fP2022').value);
+  const p2023 = parseFloat(document.getElementById('fP2023').value);
+  const p2024 = parseFloat(document.getElementById('fP2024').value);
+  const p2025 = parseFloat(document.getElementById('fP2025').value);
+  const errEl = document.getElementById('formError');
+
+  if (!name || isNaN(p2022) || isNaN(p2023) || isNaN(p2024) || isNaN(p2025) || p2022 <= 0 || p2023 <= 0 || p2024 <= 0 || p2025 <= 0) {
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const customs = loadCustomCommodities();
+  customs.push({ name, unit, prices: [p2022, p2023, p2024, p2025], iconClass: 'custom' });
+  saveCustomCommodities(customs);
+
+  // Clear form
+  document.getElementById('fName').value = '';
+  document.getElementById('fP2022').value = '';
+  document.getElementById('fP2023').value = '';
+  document.getElementById('fP2024').value = '';
+  document.getElementById('fP2025').value = '';
+
+  renderAll();
+}
+
+// ========== INIT ==========
+function renderAll() {
+  renderKPIs();
+  renderCommodityCards();
+  buildMainChart(currentChartType);
+}
+
+document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+renderAll();
+</script>
+
+</body>
+</html>
