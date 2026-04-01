@@ -1,0 +1,13 @@
+{
+  "name": "ai-social-media-manager-images",
+  "version": "1.0.0",
+  "description": "Generate AI images for the AI Social Media Manager landing page using Gemini API",
+  "type": "module",
+  "scripts": {
+    "generate": "node generate-images.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.0.0",
+    "dotenv": "^16.4.7"
+  }
+}
