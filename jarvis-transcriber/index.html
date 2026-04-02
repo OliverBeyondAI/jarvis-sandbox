@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jarvis Transcriber</title>
+<style>
+  :root {
+    --bg-primary: #0f0f0f;
+    --bg-secondary: #1a1a1a;
+    --bg-tertiary: #252525;
+    --bg-hover: #2a2a2a;
+    --border: #333;
+    --border-light: #444;
+    --text-primary: #e8e8e8;
+    --text-secondary: #999;
+    --text-muted: #666;
+    --accent: #7c6aef;
+    --accent-hover: #6b59de;
+    --accent-glow: rgba(124, 106, 239, 0.15);
+    --success: #34d399;
+    --error: #f87171;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --transition: 0.2s ease;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary);
+  }
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-left svg {
+    width: 24px;
+    height: 24px;
+    color: var(--accent);
+  }
+  .header-left h1 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .settings-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition);
+  }
+  .settings-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+  }
+  .settings-btn svg { width: 18px; height: 18px; }
+
+  /* Settings Panel */
+  .settings-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+  .settings-overlay.open { display: flex; align-items: center; justify-content: center; }
+  .settings-panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    width: 440px;
+    max-width: 90vw;
+  }
+  .settings-panel h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .settings-panel label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .settings-panel input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+    margin-bottom: 16px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    transition: border-color var(--transition);
+  }
+  .settings-panel input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .settings-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+  .btn {
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all var(--transition);
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--bg-hover); }
+
+  /* Main Content */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* Upload Area */
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--bg-secondary);
+  }
+  .upload-area:hover, .upload-area.dragover {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .upload-area svg {
+    width: 40px;
+    height: 40px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .upload-area.dragover svg { color: var(--accent); }
+  .upload-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .upload-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .upload-formats {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+  }
+  .file-input { display: none; }
+
+  /* File Info Bar */
+  .file-info {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .file-info.visible { display: flex; }
+  .file-info svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+  .file-name { font-weight: 500; flex: 1; }
+  .file-size { color: var(--text-secondary); }
+  .file-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color var(--transition);
+  }
+  .file-remove:hover { color: var(--error); }
+  .file-remove svg { width: 16px; height: 16px; }
+
+  /* Transcribe Button */
+  .transcribe-section {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .btn-transcribe {
+    padding: 12px 32px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+  .btn-transcribe:hover { background: var(--accent-hover); transform: translateY(-1px); }
+  .btn-transcribe:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Progress */
+  .progress-section {
+    display: none;
+    margin-top: 24px;
+    text-align: center;
+  }
+  .progress-section.visible { display: block; }
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .progress-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .progress-step {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Error */
+  .error-msg {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(248, 113, 113, 0.1);
+    border: 1px solid rgba(248, 113, 113, 0.3);
+    border-radius: var(--radius-sm);
+    color: var(--error);
+    font-size: 13px;
+  }
+  .error-msg.visible { display: block; }
+
+  /* Results */
+  .results {
+    display: none;
+    margin-top: 32px;
+    gap: 20px;
+  }
+  .results.visible {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .panel {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    max-height: 600px;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+  }
+  .panel-actions {
+    display: flex;
+    gap: 6px;
+  }
+  .panel-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all var(--transition);
+  }
+  .panel-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+  .panel-btn.copied {
+    background: rgba(52, 211, 153, 0.15);
+    border-color: rgba(52, 211, 153, 0.4);
+    color: var(--success);
+  }
+  .panel-btn svg { width: 12px; height: 12px; }
+  .panel-body {
+    padding: 18px;
+    overflow-y: auto;
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .panel-body::-webkit-scrollbar { width: 6px; }
+  .panel-body::-webkit-scrollbar-track { background: transparent; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Transcript Formatting */
+  .timestamp {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    margin-right: 6px;
+    user-select: none;
+  }
+  .transcript-block {
+    margin-bottom: 14px;
+  }
+
+  /* Summary Formatting */
+  .summary-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+    margin-top: 20px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-section-title:first-child { margin-top: 0; }
+  .summary-item {
+    padding: 3px 0;
+    color: var(--text-primary);
+  }
+  .summary-item::before {
+    content: '›';
+    color: var(--text-muted);
+    margin-right: 8px;
+    font-weight: 600;
+  }
+  .speaker-label {
+    color: var(--success);
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .main { padding: 20px 16px; }
+    .results.visible {
+      grid-template-columns: 1fr;
+    }
+    .panel { max-height: 500px; }
+    .upload-area { padding: 36px 16px; }
+    .header { padding: 14px 16px; }
+    .header-left h1 { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8" y1="23" x2="16" y2="23"/>
+    </svg>
+    <h1>Jarvis Transcriber</h1>
+  </div>
+  <button class="settings-btn" onclick="toggleSettings()" title="Settings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  </button>
+</div>
+
+<!-- Settings Overlay -->
+<div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)toggleSettings()">
+  <div class="settings-panel">
+    <h2>API Settings</h2>
+    <label for="openaiKey">OpenAI API Key</label>
+    <input type="password" id="openaiKey" placeholder="sk-..." autocomplete="off">
+    <label for="anthropicKey">Anthropic API Key</label>
+    <input type="password" id="anthropicKey" placeholder="sk-ant-..." autocomplete="off">
+    <div class="settings-actions">
+      <button class="btn btn-secondary" onclick="toggleSettings()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <!-- Upload -->
+  <div class="upload-area" id="uploadArea">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+    <div class="upload-title">Drop an audio file here or click to upload</div>
+    <div class="upload-subtitle">Transcribe voice memos and audio files instantly</div>
+    <div class="upload-formats">M4A &middot; MP3 &middot; WAV &middot; OPUS &middot; OGG &middot; WEBM</div>
+  </div>
+  <input type="file" class="file-input" id="fileInput" accept=".m4a,.mp3,.wav,.opus,.ogg,.webm,audio/*">
+
+  <!-- File Info -->
+  <div class="file-info" id="fileInfo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+    </svg>
+    <span class="file-name" id="fileName"></span>
+    <span class="file-size" id="fileSize"></span>
+    <button class="file-remove" onclick="removeFile()" title="Remove file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Transcribe Button -->
+  <div class="transcribe-section">
+    <button class="btn-transcribe" id="transcribeBtn" onclick="startTranscription()" disabled>
+      Transcribe
+    </button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section" id="progress">
+    <div class="spinner"></div>
+    <div class="progress-text" id="progressText">Processing...</div>
+    <div class="progress-step" id="progressStep"></div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-msg" id="errorMsg"></div>
+
+  <!-- Results -->
+  <div class="results" id="results">
+    <!-- Transcript Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Full Transcript</span>
+        <div class="panel-actions">
+          <button class="panel-btn" onclick="copyPanel('transcript', this)" title="Copy to clipboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copy</span>
+          </button>
+          <button class="panel-btn" onclick="downloadTranscript()" title="Download as .txt">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Download</span>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body" id="transcriptBody"></div>
+    </div>
+
+    <!-- Summary Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Summary & Key Points</span>
+        <div class="panel-actions">
+          <button class="panel-btn" onclick="copyPanel('summary', this)" title="Copy to clipboard">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Copy</span>
+          </button>
+        </div>
+      </div>
+      <div class="panel-body" id="summaryBody"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // State
+  let selectedFile = null;
+  let transcriptText = '';
+  let summaryText = '';
+
+  // DOM
+  const uploadArea = document.getElementById('uploadArea');
+  const fileInput = document.getElementById('fileInput');
+  const fileInfo = document.getElementById('fileInfo');
+  const fileName = document.getElementById('fileName');
+  const fileSize = document.getElementById('fileSize');
+  const transcribeBtn = document.getElementById('transcribeBtn');
+  const progress = document.getElementById('progress');
+  const progressText = document.getElementById('progressText');
+  const progressStep = document.getElementById('progressStep');
+  const errorMsg = document.getElementById('errorMsg');
+  const results = document.getElementById('results');
+  const transcriptBody = document.getElementById('transcriptBody');
+  const summaryBody = document.getElementById('summaryBody');
+
+  // Upload handling
+  uploadArea.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+  });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  function handleFile(file) {
+    const validTypes = ['.m4a','.mp3','.wav','.opus','.ogg','.webm'];
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (!validTypes.includes(ext)) {
+      showError('Unsupported file type. Please use M4A, MP3, WAV, OPUS, OGG, or WEBM.');
+      return;
+    }
+    selectedFile = file;
+    fileName.textContent = file.name;
+    fileSize.textContent = formatSize(file.size);
+    fileInfo.classList.add('visible');
+    transcribeBtn.disabled = false;
+    hideError();
+  }
+
+  function removeFile() {
+    selectedFile = null;
+    fileInput.value = '';
+    fileInfo.classList.remove('visible');
+    transcribeBtn.disabled = true;
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  // Settings
+  function toggleSettings() {
+    const overlay = document.getElementById('settingsOverlay');
+    const isOpen = overlay.classList.toggle('open');
+    if (isOpen) {
+      document.getElementById('openaiKey').value = localStorage.getItem('jt_openai_key') || '';
+      document.getElementById('anthropicKey').value = localStorage.getItem('jt_anthropic_key') || '';
+    }
+  }
+
+  function saveSettings() {
+    localStorage.setItem('jt_openai_key', document.getElementById('openaiKey').value.trim());
+    localStorage.setItem('jt_anthropic_key', document.getElementById('anthropicKey').value.trim());
+    toggleSettings();
+  }
+
+  function getKeys() {
+    return {
+      openai: localStorage.getItem('jt_openai_key') || '',
+      anthropic: localStorage.getItem('jt_anthropic_key') || ''
+    };
+  }
+
+  // Error display
+  function showError(msg) {
+    errorMsg.textContent = msg;
+    errorMsg.classList.add('visible');
+  }
+  function hideError() {
+    errorMsg.classList.remove('visible');
+  }
+
+  // Progress display
+  function showProgress(text, step) {
+    progress.classList.add('visible');
+    progressText.textContent = text;
+    progressStep.textContent = step || '';
+  }
+  function hideProgress() {
+    progress.classList.remove('visible');
+  }
+
+  // Main transcription flow
+  async function startTranscription() {
+    if (!selectedFile) return;
+    const keys = getKeys();
+    if (!keys.openai) {
+      showError('Please add your OpenAI API key in Settings (gear icon).');
+      return;
+    }
+    if (!keys.anthropic) {
+      showError('Please add your Anthropic API key in Settings (gear icon).');
+      return;
+    }
+
+    hideError();
+    results.classList.remove('visible');
+    transcribeBtn.disabled = true;
+
+    try {
+      // Step 1: Transcribe with Whisper
+      showProgress('Transcribing audio...', 'Sending to OpenAI Whisper API');
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      formData.append('model', 'whisper-1');
+      formData.append('response_format', 'verbose_json');
+      formData.append('timestamp_granularities[]', 'segment');
+
+      const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${keys.openai}` },
+        body: formData
+      });
+
+      if (!whisperRes.ok) {
+        const errData = await whisperRes.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `Whisper API error (${whisperRes.status})`);
+      }
+
+      const whisperData = await whisperRes.json();
+      const rawTranscript = whisperData.text || '';
+      const segments = whisperData.segments || [];
+
+      // Build timestamped transcript
+      let timestampedTranscript = '';
+      if (segments.length > 0) {
+        for (const seg of segments) {
+          const ts = formatTimestamp(seg.start);
+          timestampedTranscript += `[${ts}] ${seg.text.trim()}\n\n`;
+        }
+      } else {
+        timestampedTranscript = rawTranscript;
+      }
+      transcriptText = timestampedTranscript.trim();
+
+      // Display transcript
+      displayTranscript(segments, rawTranscript);
+
+      // Step 2: Summarize + diarize with Claude
+      showProgress('Generating summary...', 'Analyzing transcript with Claude');
+
+      const claudePrompt = `You are analyzing an audio transcription. Here is the full transcript:
+
+<transcript>
+${transcriptText}
+</transcript>
+
+Please provide a structured analysis with the following sections. Use plain text formatting (no markdown). Use line breaks between items.
+
+SPEAKER IDENTIFICATION:
+If you can detect multiple speakers from context clues, reformat relevant parts as "Speaker 1:", "Speaker 2:", etc. If it appears to be a single speaker, note that.
+
+MAIN TOPICS:
+List the main topics discussed, one per line.
+
+KEY INSIGHTS & PAIN POINTS:
+List any important insights, pain points, or notable statements mentioned.
+
+ACTION ITEMS & NEXT STEPS:
+List any action items, tasks, or next steps mentioned. If none, write "None identified."
+
+PEOPLE & COMPANIES MENTIONED:
+List any names of people or companies mentioned. If none, write "None mentioned."
+
+BRIEF SUMMARY:
+Write a 2-3 sentence overall summary of the audio content.`;
+
+      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': keys.anthropic,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2048,
+          messages: [{ role: 'user', content: claudePrompt }]
+        })
+      });
+
+      if (!claudeRes.ok) {
+        const errData = await claudeRes.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `Claude API error (${claudeRes.status})`);
+      }
+
+      const claudeData = await claudeRes.json();
+      summaryText = claudeData.content?.[0]?.text || 'No summary generated.';
+
+      // Display summary
+      displaySummary(summaryText);
+
+      hideProgress();
+      results.classList.add('visible');
+
+    } catch (err) {
+      hideProgress();
+      showError(err.message);
+    } finally {
+      transcribeBtn.disabled = !selectedFile;
+    }
+  }
+
+  function formatTimestamp(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  function displayTranscript(segments, rawText) {
+    if (segments.length > 0) {
+      transcriptBody.innerHTML = segments.map(seg => {
+        const ts = formatTimestamp(seg.start);
+        return `<div class="transcript-block"><span class="timestamp">[${ts}]</span>${escapeHtml(seg.text.trim())}</div>`;
+      }).join('');
+    } else {
+      transcriptBody.innerHTML = `<div class="transcript-block">${escapeHtml(rawText)}</div>`;
+    }
+  }
+
+  function displaySummary(text) {
+    // Parse sections and format
+    const lines = text.split('\n');
+    let html = '';
+    const sectionPattern = /^([A-Z][A-Z &]+):?\s*$/;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+
+      if (sectionPattern.test(trimmed)) {
+        html += `<div class="summary-section-title">${escapeHtml(trimmed.replace(/:$/, ''))}</div>`;
+      } else if (trimmed.startsWith('Speaker ') && trimmed.includes(':')) {
+        const colonIdx = trimmed.indexOf(':');
+        const label = trimmed.substring(0, colonIdx + 1);
+        const rest = trimmed.substring(colonIdx + 1);
+        html += `<div class="summary-item" style="padding-left:0"><span class="speaker-label">${escapeHtml(label)}</span>${escapeHtml(rest)}</div>`;
+      } else if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+        html += `<div class="summary-item">${escapeHtml(trimmed.substring(2))}</div>`;
+      } else {
+        html += `<div style="margin-bottom:6px">${escapeHtml(trimmed)}</div>`;
+      }
+    }
+    summaryBody.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Copy & Download
+  function copyPanel(type, btn) {
+    const text = type === 'transcript' ? transcriptText : summaryText;
+    navigator.clipboard.writeText(text).then(() => {
+      const label = btn.querySelector('span');
+      const origText = label.textContent;
+      btn.classList.add('copied');
+      label.textContent = 'Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        label.textContent = origText;
+      }, 1500);
+    });
+  }
+
+  function downloadTranscript() {
+    if (!transcriptText) return;
+    const name = selectedFile ? selectedFile.name.replace(/\.[^.]+$/, '') : 'transcript';
+    const blob = new Blob([transcriptText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${name}_transcript.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Load saved keys on page load
+  window.addEventListener('load', () => {
+    const keys = getKeys();
+    if (!keys.openai || !keys.anthropic) {
+      // Subtle hint to set up keys
+      progressStep.textContent = '';
+    }
+  });
+</script>
+</body>
+</html>
