@@ -29,6 +29,8 @@ Usage:
 import logging
 import os
 from datetime import datetime, timezone
+from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from pr_status_checker import (
     check_and_update_pr_statuses,
@@ -54,6 +56,19 @@ ARCHIVABLE_STATUSES = {
     TASK_STATUS_FAILED,
     TASK_STATUS_CANCELLED,
 }
+
+# ---------------------------------------------------------------------------
+# Briefing schedule constants
+# ---------------------------------------------------------------------------
+TIMEZONE = ZoneInfo("America/New_York")
+MORNING_BRIEFING_HOUR = 6   # 6 AM Eastern
+EVENING_SUMMARY_HOUR = 21   # 9 PM Eastern
+
+# Marker file directory — lightweight local tracking of sent briefings
+BRIEFING_MARKER_DIR = Path(os.environ.get(
+    "BRIEFING_MARKER_DIR",
+    Path.home() / ".jarvis" / "briefing-markers",
+))
 
 # Statuses shown in the default list view (active work only)
 # Completed tasks are included because they may have open PRs awaiting review.
@@ -291,6 +306,209 @@ def bulk_archive(table, task_ids: list, reason: str = "") -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Briefing catch-up mechanism
+# ---------------------------------------------------------------------------
+#
+# If the 6 AM ET morning-briefing window is missed (e.g. the machine was
+# asleep), the catch-up logic sends the briefing as soon as the worker
+# comes back online — but only if it hasn't already been sent that day.
+#
+# Dual tracking:
+#   1. DynamoDB marker  (briefing-morning-YYYY-MM-DD) — authoritative, shared
+#   2. Local marker file (~/.jarvis/briefing-markers/morning-YYYY-MM-DD.sent)
+#      — fast offline check, avoids a DynamoDB call on every loop iteration
+# ---------------------------------------------------------------------------
+
+
+def _marker_path(briefing_type: str, date_str: str) -> Path:
+    """Return the path for a local date-stamped marker file."""
+    return BRIEFING_MARKER_DIR / f"{briefing_type}-{date_str}.sent"
+
+
+def _briefing_sent_locally(briefing_type: str, date_str: str) -> bool:
+    """Check the local marker file to see if a briefing was already sent today."""
+    return _marker_path(briefing_type, date_str).exists()
+
+
+def _mark_briefing_sent_locally(briefing_type: str, date_str: str) -> None:
+    """Create a local marker file to record that a briefing was sent."""
+    BRIEFING_MARKER_DIR.mkdir(parents=True, exist_ok=True)
+    marker = _marker_path(briefing_type, date_str)
+    marker.write_text(datetime.now(TIMEZONE).isoformat())
+    logger.info(f"Local marker created: {marker}")
+
+
+def _briefing_sent_in_dynamo(table, briefing_type: str, date_str: str) -> bool:
+    """Check DynamoDB for the date-stamped briefing marker (authoritative)."""
+    briefing_key = f"briefing-{briefing_type}-{date_str}"
+    try:
+        response = table.get_item(Key={"task_id": briefing_key})
+        return bool(response.get("Item"))
+    except Exception as e:
+        logger.warning(f"DynamoDB check for {briefing_key} failed: {e}")
+        return False
+
+
+def _record_briefing_in_dynamo(table, briefing_type: str, date_str: str) -> None:
+    """Write the date-stamped briefing marker to DynamoDB."""
+    briefing_key = f"briefing-{briefing_type}-{date_str}"
+    now = datetime.now(TIMEZONE).isoformat()
+    try:
+        table.put_item(Item={
+            "task_id": briefing_key,
+            "status": "sent",
+            "created_at": now,
+            "updated_at": now,
+        })
+        logger.info(f"DynamoDB marker written: {briefing_key}")
+    except Exception as e:
+        logger.error(f"Failed to write DynamoDB marker {briefing_key}: {e}")
+
+
+def briefing_already_sent(table, briefing_type: str, date_str: str) -> bool:
+    """
+    Check whether a briefing has already been sent today.
+
+    Uses a fast local marker file first, falling back to a DynamoDB query.
+    If DynamoDB says it was sent but the local marker is missing (e.g.
+    marker dir was cleared), re-create the local marker for consistency.
+    """
+    # Fast path — local file exists
+    if _briefing_sent_locally(briefing_type, date_str):
+        return True
+
+    # Slow path — check DynamoDB (authoritative)
+    if _briefing_sent_in_dynamo(table, briefing_type, date_str):
+        # Re-sync local marker
+        _mark_briefing_sent_locally(briefing_type, date_str)
+        return True
+
+    return False
+
+
+def check_and_send_missed_briefings(table, send_briefing_fn) -> list:
+    """
+    Catch-up mechanism: detect and send any missed briefings for today.
+
+    Call this when the worker starts up or resumes from sleep. It checks
+    whether each scheduled briefing's window has already passed and, if
+    the briefing wasn't sent, triggers it immediately.
+
+    Args:
+        table: boto3 DynamoDB Table resource for jarvis-tasks.
+        send_briefing_fn: Callable(briefing_type: str) -> bool
+            A function that generates and sends the briefing.
+            Should return True on success, False on failure.
+            Example: lambda btype: maybe_send_briefing(btype)
+
+    Returns:
+        List of briefing types that were caught up (e.g. ["morning"]).
+    """
+    now = datetime.now(TIMEZONE)
+    today = now.strftime("%Y-%m-%d")
+    current_hour = now.hour
+    caught_up = []
+
+    briefings = [
+        ("morning", MORNING_BRIEFING_HOUR),
+        ("evening", EVENING_SUMMARY_HOUR),
+    ]
+
+    for briefing_type, scheduled_hour in briefings:
+        # Only catch up if we're past the scheduled hour
+        if current_hour < scheduled_hour:
+            continue
+
+        # Skip if already sent today
+        if briefing_already_sent(table, briefing_type, today):
+            logger.debug(f"{briefing_type} briefing already sent for {today}")
+            continue
+
+        # Missed window — send now
+        logger.info(
+            f"Catch-up: {briefing_type} briefing was missed "
+            f"(scheduled hour {scheduled_hour}, now {current_hour}). "
+            f"Sending now."
+        )
+
+        try:
+            success = send_briefing_fn(briefing_type)
+        except Exception:
+            logger.exception(f"Catch-up: failed to send {briefing_type} briefing")
+            continue
+
+        if success:
+            _mark_briefing_sent_locally(briefing_type, today)
+            _record_briefing_in_dynamo(table, briefing_type, today)
+            caught_up.append(briefing_type)
+            logger.info(f"Catch-up: {briefing_type} briefing sent successfully")
+        else:
+            logger.warning(f"Catch-up: {briefing_type} briefing send returned failure")
+
+    return caught_up
+
+
+def cleanup_old_markers(days_to_keep: int = 7) -> int:
+    """
+    Remove local marker files older than `days_to_keep` days.
+
+    Call periodically (e.g. once per day) to prevent marker file buildup.
+    Returns the number of files removed.
+    """
+    if not BRIEFING_MARKER_DIR.exists():
+        return 0
+
+    now = datetime.now(TIMEZONE)
+    removed = 0
+
+    for marker in BRIEFING_MARKER_DIR.glob("*.sent"):
+        try:
+            # Extract date from filename: e.g. "morning-2026-04-25.sent"
+            parts = marker.stem.rsplit("-", 3)  # type, YYYY, MM, DD
+            if len(parts) >= 4:
+                date_str = f"{parts[-3]}-{parts[-2]}-{parts[-1]}"
+                marker_date = datetime.strptime(date_str, "%Y-%m-%d").replace(
+                    tzinfo=TIMEZONE
+                )
+                age_days = (now - marker_date).days
+                if age_days > days_to_keep:
+                    marker.unlink()
+                    removed += 1
+                    logger.debug(f"Removed old marker: {marker.name}")
+        except (ValueError, IndexError):
+            logger.debug(f"Skipping unparseable marker: {marker.name}")
+
+    if removed:
+        logger.info(f"Cleaned up {removed} old briefing marker(s)")
+    return removed
+
+
+# ---------------------------------------------------------------------------
+# Startup integration — call from the worker's main loop
+# ---------------------------------------------------------------------------
+
+
+def on_worker_startup(table, send_briefing_fn) -> None:
+    """
+    Run once when the jarvis-worker process starts or resumes from sleep.
+
+    Performs catch-up for any missed briefings and cleans up stale markers.
+    Wire this into the worker's initialization sequence:
+
+        from task_runner import on_worker_startup
+        on_worker_startup(table, send_briefing_fn=my_send_fn)
+
+    Args:
+        table: boto3 DynamoDB Table resource for jarvis-tasks.
+        send_briefing_fn: Callable(briefing_type: str) -> bool
+    """
+    caught = check_and_send_missed_briefings(table, send_briefing_fn)
+    if caught:
+        logger.info(f"Worker startup catch-up sent: {', '.join(caught)}")
+    cleanup_old_markers()
+
+
+# ---------------------------------------------------------------------------
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
@@ -310,6 +528,15 @@ if __name__ == "__main__":
     close_parser.add_argument("task_id", help="Task ID to archive")
     close_parser.add_argument("--reason", default="", help="Reason for archiving")
 
+    # catchup command — check for missed briefings
+    catchup_parser = subparsers.add_parser(
+        "catchup", help="Check for and send any missed briefings"
+    )
+    catchup_parser.add_argument(
+        "--dry-run", action="store_true",
+        help="Only check — don't actually send briefings",
+    )
+
     # list command
     list_parser = subparsers.add_parser("list", help="List tasks")
     list_parser.add_argument(
@@ -327,7 +554,50 @@ if __name__ == "__main__":
     dynamodb = boto3.resource("dynamodb", region_name=os.environ.get("AWS_REGION", "us-east-1"))
     table = dynamodb.Table(table_name)
 
-    if args.command == "close":
+    if args.command == "catchup":
+        now = datetime.now(TIMEZONE)
+        today = now.strftime("%Y-%m-%d")
+        print(f"Checking for missed briefings ({now.strftime('%Y-%m-%d %H:%M %Z')})...")
+
+        if args.dry_run:
+            # Dry-run: report status without sending anything
+            briefings = [
+                ("morning", MORNING_BRIEFING_HOUR),
+                ("evening", EVENING_SUMMARY_HOUR),
+            ]
+            any_missed = False
+            for btype, hour in briefings:
+                if now.hour < hour:
+                    print(f"  {btype}: not yet due (scheduled at {hour}:00 ET)")
+                elif briefing_already_sent(table, btype, today):
+                    print(f"  {btype}: already sent for {today}")
+                else:
+                    any_missed = True
+                    print(f"  {btype}: MISSED — would send now (dry-run)")
+            if not any_missed:
+                print("All briefings are up to date.")
+        else:
+            # Live mode: use the real catch-up mechanism.
+            # Import the worker's send function if available; otherwise
+            # abort rather than silently marking briefings as sent.
+            try:
+                from jarvis_worker import send_briefing as _real_send
+            except ImportError:
+                print(
+                    "ERROR: Could not import send_briefing from jarvis_worker.\n"
+                    "The catchup command must be run from an environment where "
+                    "the jarvis-worker package is importable.\n"
+                    "Use --dry-run to check status without sending."
+                )
+                raise SystemExit(1)
+
+            caught = check_and_send_missed_briefings(table, _real_send)
+            if caught:
+                print(f"Caught up: {', '.join(caught)}")
+            else:
+                print("All briefings are up to date.")
+
+    elif args.command == "close":
         result = close_task(table, args.task_id, reason=args.reason)
         if result["success"]:
             print(f"OK: {result['message']}")
