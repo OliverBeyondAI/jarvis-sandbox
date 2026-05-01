@@ -1,0 +1,17 @@
+[project]
+name = "research-summarizer"
+version = "0.1.0"
+description = "AI-powered research summarizer agent that accepts URLs and produces structured summaries using Claude and Tavily."
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=0.97.0",
+    "tavily-python>=0.5.0",
+    "httpx>=0.27.0",
+]
+
+[project.scripts]
+research-summarizer = "research_summarizer.main:main"
+
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
