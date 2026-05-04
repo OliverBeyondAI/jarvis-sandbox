@@ -1,0 +1,333 @@
+[
+  {
+    "_description": "COMPLETE — Visually significant cataract, standard phacoemulsification with IOL, full workup",
+    "case_id": "CAT-001-COMPLETE",
+    "completeness": "complete",
+    "submission_date": "2026-04-30",
+    "urgency": "routine",
+    "procedure_category": "cataract_surgery",
+    "patient": {
+      "first_name": "James",
+      "last_name": "O'Brien",
+      "date_of_birth": "1940-06-12",
+      "gender": "male",
+      "member_id": "BCBS-TX-5517829",
+      "group_number": "GRP-88140",
+      "phone": "555-923-4410",
+      "address": "8921 Ridgeview Ln, Dallas, TX 75231"
+    },
+    "insurance": {
+      "payer_name": "Blue Cross Blue Shield",
+      "plan_type": "PPO",
+      "member_id": "BCBS-TX-5517829",
+      "group_number": "GRP-88140",
+      "policy_holder_name": "James O'Brien",
+      "policy_holder_relationship": "self",
+      "effective_date": "2024-07-01",
+      "authorization_phone": "1-800-521-2227"
+    },
+    "requesting_provider": {
+      "provider_name": "Dr. Angela Torres",
+      "npi": "1122334455",
+      "specialty": "Ophthalmology — Anterior Segment / Cataract",
+      "practice_name": "Dallas Eye Surgery Center",
+      "practice_address": "5050 Medical City Dr, Suite 210, Dallas, TX 75235",
+      "phone": "214-555-0377",
+      "fax": "214-555-0378",
+      "tax_id": "75-6128394"
+    },
+    "rendering_provider": null,
+    "diagnoses": [
+      {
+        "icd10_code": "H25.11",
+        "description": "Age-related nuclear cataract, right eye",
+        "is_primary": true
+      },
+      {
+        "icd10_code": "H52.11",
+        "description": "Myopia, right eye",
+        "is_primary": false
+      }
+    ],
+    "procedures": [
+      {
+        "cpt_code": "66984",
+        "description": "Extracapsular cataract removal with insertion of intraocular lens prosthesis (1-stage procedure), manual or mechanical technique",
+        "laterality": "OD",
+        "quantity": 1
+      }
+    ],
+    "visual_acuity": [
+      {
+        "eye": "OD",
+        "best_corrected": "20/70",
+        "uncorrected": "20/200",
+        "pinhole": "20/60",
+        "method": "Snellen"
+      },
+      {
+        "eye": "OS",
+        "best_corrected": "20/25",
+        "uncorrected": "20/40",
+        "pinhole": null,
+        "method": "Snellen"
+      }
+    ],
+    "exam_findings": [
+      {
+        "eye": "OD",
+        "structure": "lens",
+        "finding": "3+ nuclear sclerosis with amber discoloration. Posterior subcapsular plaque noted inferiorly.",
+        "severity": "severe"
+      },
+      {
+        "eye": "OD",
+        "structure": "anterior segment",
+        "finding": "Anterior chamber deep, quiet. Iris unremarkable. Pupil round and reactive. IOP 16 mmHg.",
+        "severity": null
+      },
+      {
+        "eye": "OD",
+        "structure": "retina",
+        "finding": "Limited view through dense cataract. No obvious gross pathology. B-scan unremarkable.",
+        "severity": null
+      },
+      {
+        "eye": "OS",
+        "structure": "lens",
+        "finding": "1+ nuclear sclerosis. No posterior subcapsular changes.",
+        "severity": "mild"
+      }
+    ],
+    "imaging_studies": [
+      {
+        "modality": "B-scan",
+        "date_performed": "2026-04-28",
+        "eye": "OD",
+        "findings": "No vitreous opacities, retinal detachment, or mass lesion. Posterior vitreous detachment present.",
+        "central_subfield_thickness_um": null,
+        "subretinal_fluid": null,
+        "intraretinal_fluid": null,
+        "pigment_epithelial_detachment": null,
+        "leakage_pattern": null
+      },
+      {
+        "modality": "IOLMaster biometry",
+        "date_performed": "2026-04-28",
+        "eye": "OD",
+        "findings": "Axial length 24.12 mm, K1 43.50 D @ 90°, K2 44.25 D @ 180°, ACD 3.21 mm. Target refraction: plano. IOL power: SN60WF +20.0 D.",
+        "central_subfield_thickness_um": null,
+        "subretinal_fluid": null,
+        "intraretinal_fluid": null,
+        "pigment_epithelial_detachment": null,
+        "leakage_pattern": null
+      }
+    ],
+    "prior_treatments": [
+      {
+        "treatment_name": "Updated spectacle correction",
+        "cpt_or_j_code": null,
+        "start_date": "2025-06-01",
+        "end_date": null,
+        "total_doses": null,
+        "response": "no response",
+        "reason_discontinued": "Glare and reduced contrast persist despite updated refraction; nuclear sclerosis is the limiting factor",
+        "adverse_effects": []
+      }
+    ],
+    "clinical_notes": [
+      {
+        "note_date": "2026-04-28",
+        "author": "Dr. Angela Torres",
+        "note_type": "progress note",
+        "text": "85-year-old male presents with progressive blurred vision and glare OD over the past 12 months, significantly impacting driving and reading. BCVA OD 20/70, not improving with refraction. Slit lamp reveals 3+ nuclear sclerosis with PSC. Glare testing shows marked reduction in contrast sensitivity. B-scan confirms normal posterior segment. Patient desires surgical correction. Plan: phacoemulsification with PCIOL OD. Discussed risks including endophthalmitis, retinal detachment, PCR, and need for postop drops. Patient consents. Requesting PA for CPT 66984."
+      }
+    ],
+    "supporting_documents": [
+      "biometry_od_20260428.pdf",
+      "bscan_od_20260428.pdf",
+      "glare_testing_results.pdf"
+    ],
+    "prior_auth_number": null,
+    "requested_duration_months": null,
+    "requested_total_doses": null
+  },
+
+  {
+    "_description": "PARTIAL — Complex cataract with comorbidities, some clinical details missing",
+    "case_id": "CAT-002-PARTIAL",
+    "completeness": "partial",
+    "submission_date": "2026-05-02",
+    "urgency": "urgent",
+    "procedure_category": "cataract_surgery",
+    "patient": {
+      "first_name": "Patricia",
+      "last_name": "Nguyen",
+      "date_of_birth": "1953-02-28",
+      "gender": "female",
+      "member_id": "CIG-773920416",
+      "group_number": null,
+      "phone": "555-614-7832",
+      "address": null
+    },
+    "insurance": {
+      "payer_name": "Cigna",
+      "plan_type": "PPO",
+      "member_id": "CIG-773920416",
+      "group_number": null,
+      "policy_holder_name": null,
+      "policy_holder_relationship": null,
+      "effective_date": null,
+      "authorization_phone": null
+    },
+    "requesting_provider": {
+      "provider_name": "Dr. Michael Reeves",
+      "npi": "5566778899",
+      "specialty": "Ophthalmology",
+      "practice_name": "North Texas Eye Associates",
+      "practice_address": "1200 W University Dr, Denton, TX 76201",
+      "phone": "940-555-0221",
+      "fax": null,
+      "tax_id": null
+    },
+    "rendering_provider": null,
+    "diagnoses": [
+      {
+        "icd10_code": "H25.813",
+        "description": "Combined forms of age-related cataract, bilateral",
+        "is_primary": true
+      },
+      {
+        "icd10_code": "H40.1111",
+        "description": "Primary open-angle glaucoma, right eye, mild stage",
+        "is_primary": false
+      },
+      {
+        "icd10_code": "H21.81",
+        "description": "Floppy iris syndrome",
+        "is_primary": false
+      },
+      {
+        "icd10_code": "E11.9",
+        "description": "Type 2 diabetes mellitus without complications",
+        "is_primary": false
+      }
+    ],
+    "procedures": [
+      {
+        "cpt_code": "66982",
+        "description": "Extracapsular cataract removal with IOL, complex (e.g., small pupil, prior vitrectomy, IFIS)",
+        "laterality": "OD",
+        "quantity": 1
+      }
+    ],
+    "visual_acuity": [
+      {
+        "eye": "OD",
+        "best_corrected": "20/100",
+        "uncorrected": null,
+        "pinhole": "20/80",
+        "method": "Snellen"
+      }
+    ],
+    "exam_findings": [
+      {
+        "eye": "OD",
+        "structure": "lens",
+        "finding": "4+ nuclear sclerosis, posterior subcapsular cataract. Dense brunescent lens.",
+        "severity": "severe"
+      },
+      {
+        "eye": "OD",
+        "structure": "iris",
+        "finding": "Floppy iris syndrome noted. History of tamsulosin use.",
+        "severity": "moderate"
+      }
+    ],
+    "imaging_studies": [],
+    "prior_treatments": [],
+    "clinical_notes": [
+      {
+        "note_date": "2026-05-01",
+        "author": "Dr. Michael Reeves",
+        "note_type": "progress note",
+        "text": "73-year-old female with dense cataract OD and history of IFIS (tamsulosin). POAG OD on latanoprost. BCVA 20/100. Functionally impaired for daily activities. Requesting complex cataract surgery CPT 66982 due to IFIS risk and dense brunescent lens requiring mechanical iris expansion."
+      }
+    ],
+    "supporting_documents": [],
+    "prior_auth_number": null,
+    "requested_duration_months": null,
+    "requested_total_doses": null
+  },
+
+  {
+    "_description": "MINIMAL — Cataract surgery, bare-minimum fields only",
+    "case_id": "CAT-003-MINIMAL",
+    "completeness": "minimal",
+    "submission_date": null,
+    "urgency": "routine",
+    "procedure_category": "cataract_surgery",
+    "patient": {
+      "first_name": "Harold",
+      "last_name": "Jackson",
+      "date_of_birth": "1945-09-30",
+      "gender": null,
+      "member_id": null,
+      "group_number": null,
+      "phone": null,
+      "address": null
+    },
+    "insurance": {
+      "payer_name": "Medicare Part B",
+      "plan_type": null,
+      "member_id": null,
+      "group_number": null,
+      "policy_holder_name": null,
+      "policy_holder_relationship": null,
+      "effective_date": null,
+      "authorization_phone": null
+    },
+    "requesting_provider": {
+      "provider_name": "Dr. Rachel Simmons",
+      "npi": null,
+      "specialty": null,
+      "practice_name": null,
+      "practice_address": null,
+      "phone": null,
+      "fax": null,
+      "tax_id": null
+    },
+    "rendering_provider": null,
+    "diagnoses": [
+      {
+        "icd10_code": "H25.11",
+        "description": "Age-related nuclear cataract, right eye",
+        "is_primary": true
+      }
+    ],
+    "procedures": [
+      {
+        "cpt_code": "66984",
+        "description": "Cataract surgery with IOL",
+        "laterality": "OD",
+        "quantity": 1
+      }
+    ],
+    "visual_acuity": [],
+    "exam_findings": [],
+    "imaging_studies": [],
+    "prior_treatments": [],
+    "clinical_notes": [
+      {
+        "note_date": null,
+        "author": null,
+        "note_type": null,
+        "text": "Visually significant cataract OD. Plan cataract surgery."
+      }
+    ],
+    "supporting_documents": [],
+    "prior_auth_number": null,
+    "requested_duration_months": null,
+    "requested_total_doses": null
+  }
+]

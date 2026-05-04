@@ -1,0 +1,428 @@
+[
+  {
+    "_description": "COMPLETE — Diabetic retinopathy screening, full imaging workup with OCT + fundus photography",
+    "case_id": "IMG-001-COMPLETE",
+    "completeness": "complete",
+    "submission_date": "2026-05-03",
+    "urgency": "routine",
+    "procedure_category": "retinal_imaging",
+    "patient": {
+      "first_name": "Carlos",
+      "last_name": "Mendez",
+      "date_of_birth": "1958-12-04",
+      "gender": "male",
+      "member_id": "AET-331587620",
+      "group_number": "GRP-44390",
+      "phone": "555-478-9912",
+      "address": "2240 Sunset Blvd, San Antonio, TX 78228"
+    },
+    "insurance": {
+      "payer_name": "Aetna",
+      "plan_type": "HMO",
+      "member_id": "AET-331587620",
+      "group_number": "GRP-44390",
+      "policy_holder_name": "Carlos Mendez",
+      "policy_holder_relationship": "self",
+      "effective_date": "2025-03-01",
+      "authorization_phone": "1-800-624-0756"
+    },
+    "requesting_provider": {
+      "provider_name": "Dr. Emily Watts",
+      "npi": "2233445566",
+      "specialty": "Ophthalmology — Retina",
+      "practice_name": "South Texas Retina Specialists",
+      "practice_address": "7700 Floyd Curl Dr, Suite 600, San Antonio, TX 78229",
+      "phone": "210-555-0488",
+      "fax": "210-555-0489",
+      "tax_id": "74-8831205"
+    },
+    "rendering_provider": null,
+    "diagnoses": [
+      {
+        "icd10_code": "E11.3513",
+        "description": "Type 2 diabetes mellitus with proliferative diabetic retinopathy without macular edema, bilateral",
+        "is_primary": true
+      },
+      {
+        "icd10_code": "E11.65",
+        "description": "Type 2 diabetes mellitus with hyperglycemia",
+        "is_primary": false
+      },
+      {
+        "icd10_code": "H35.051",
+        "description": "Retinal neovascularization, unspecified, right eye",
+        "is_primary": false
+      }
+    ],
+    "procedures": [
+      {
+        "cpt_code": "92134",
+        "description": "Scanning computerized ophthalmic diagnostic imaging, posterior segment, with interpretation and report, unilateral or bilateral",
+        "laterality": "OU",
+        "quantity": 1
+      },
+      {
+        "cpt_code": "92250",
+        "description": "Fundus photography with interpretation and report",
+        "laterality": "OU",
+        "quantity": 1
+      },
+      {
+        "cpt_code": "92235",
+        "description": "Fluorescein angiography with interpretation and report, unilateral or bilateral",
+        "laterality": "OU",
+        "quantity": 1
+      },
+      {
+        "cpt_code": "92240",
+        "description": "Indocyanine-green angiography with interpretation and report, unilateral or bilateral",
+        "laterality": "OU",
+        "quantity": 1
+      }
+    ],
+    "visual_acuity": [
+      {
+        "eye": "OD",
+        "best_corrected": "20/40",
+        "uncorrected": "20/80",
+        "pinhole": "20/30",
+        "method": "Snellen"
+      },
+      {
+        "eye": "OS",
+        "best_corrected": "20/30",
+        "uncorrected": "20/60",
+        "pinhole": "20/25",
+        "method": "Snellen"
+      }
+    ],
+    "exam_findings": [
+      {
+        "eye": "OD",
+        "structure": "retina",
+        "finding": "Neovascularization of the disc (NVD) approximately 1/3 disc area. Scattered dot-blot hemorrhages in all four quadrants. Microaneurysms and hard exudates temporal to macula.",
+        "severity": "severe"
+      },
+      {
+        "eye": "OD",
+        "structure": "vitreous",
+        "finding": "Mild vitreous haze. No vitreous hemorrhage.",
+        "severity": "mild"
+      },
+      {
+        "eye": "OS",
+        "structure": "retina",
+        "finding": "Scattered dot-blot hemorrhages and microaneurysms. Cotton-wool spots superonasal. No neovascularization identified.",
+        "severity": "moderate"
+      },
+      {
+        "eye": "OU",
+        "structure": "anterior segment",
+        "finding": "Both eyes: pseudophakic, PCIOL well-centered, anterior chambers deep and quiet. IOP 14 mmHg OD, 15 mmHg OS.",
+        "severity": null
+      }
+    ],
+    "imaging_studies": [
+      {
+        "modality": "OCT",
+        "date_performed": "2026-05-02",
+        "eye": "OD",
+        "findings": "Central subfield thickness 295 μm. No intraretinal or subretinal fluid. Epiretinal membrane present with minimal distortion. Intact ellipsoid zone.",
+        "central_subfield_thickness_um": 295,
+        "subretinal_fluid": false,
+        "intraretinal_fluid": false,
+        "pigment_epithelial_detachment": false,
+        "leakage_pattern": null
+      },
+      {
+        "modality": "OCT",
+        "date_performed": "2026-05-02",
+        "eye": "OS",
+        "findings": "Central subfield thickness 268 μm. No fluid. Normal foveal contour. Intact ellipsoid zone.",
+        "central_subfield_thickness_um": 268,
+        "subretinal_fluid": false,
+        "intraretinal_fluid": false,
+        "pigment_epithelial_detachment": false,
+        "leakage_pattern": null
+      },
+      {
+        "modality": "Fundus photo",
+        "date_performed": "2026-05-02",
+        "eye": "OU",
+        "findings": "OD: NVD confirmed, scattered retinal hemorrhages in all quadrants, hard exudates temporal to fovea. OS: dot-blot hemorrhages, microaneurysms, cotton-wool spots superonasal.",
+        "central_subfield_thickness_um": null,
+        "subretinal_fluid": null,
+        "intraretinal_fluid": null,
+        "pigment_epithelial_detachment": null,
+        "leakage_pattern": null
+      },
+      {
+        "modality": "FA",
+        "date_performed": "2026-05-02",
+        "eye": "OU",
+        "findings": "OD: NVD with active leakage. Peripheral nonperfusion in temporal and nasal quadrants (>10 disc areas total). Multiple microaneurysms with diffuse leakage. OS: scattered microaneurysm leakage, moderate peripheral nonperfusion temporally. No neovascularization OS.",
+        "central_subfield_thickness_um": null,
+        "subretinal_fluid": null,
+        "intraretinal_fluid": null,
+        "pigment_epithelial_detachment": null,
+        "leakage_pattern": "active NVD leakage OD, diffuse microaneurysm leakage OU"
+      }
+    ],
+    "prior_treatments": [
+      {
+        "treatment_name": "Panretinal photocoagulation (PRP)",
+        "cpt_or_j_code": "67228",
+        "start_date": "2025-08-15",
+        "end_date": "2025-10-10",
+        "total_doses": 3,
+        "response": "stable",
+        "reason_discontinued": "Completed planned 3-session PRP OD; monitoring for regression",
+        "adverse_effects": ["mild peripheral visual field constriction"]
+      },
+      {
+        "treatment_name": "Bevacizumab (Avastin)",
+        "cpt_or_j_code": "J9035",
+        "start_date": "2025-06-01",
+        "end_date": "2025-08-01",
+        "total_doses": 3,
+        "response": "improved",
+        "reason_discontinued": "Transitioned to PRP for definitive treatment of PDR",
+        "adverse_effects": []
+      }
+    ],
+    "clinical_notes": [
+      {
+        "note_date": "2026-05-02",
+        "author": "Dr. Emily Watts",
+        "note_type": "progress note",
+        "text": "67-year-old male with Type 2 DM (HbA1c 8.2%) and bilateral diabetic retinopathy. OD: PDR with persistent NVD despite prior PRP (3 sessions completed Oct 2025). FA confirms active NVD leakage and extensive peripheral nonperfusion. OS: severe NPDR with cotton-wool spots, no NV. OCT OU: no DME. Plan: additional PRP OD to treat residual nonperfusion areas. Continue monitoring OS with serial imaging q3mo. Full imaging suite (OCT, fundus photos, FA) needed to document disease extent and guide treatment."
+      }
+    ],
+    "supporting_documents": [
+      "oct_ou_20260502.pdf",
+      "fundus_photos_ou_20260502.pdf",
+      "fa_ou_20260502.pdf",
+      "prp_treatment_summary_2025.pdf"
+    ],
+    "prior_auth_number": null,
+    "requested_duration_months": 12,
+    "requested_total_doses": null
+  },
+
+  {
+    "_description": "PARTIAL — Suspected glaucoma, OCT RNFL and visual field testing, some data missing",
+    "case_id": "IMG-002-PARTIAL",
+    "completeness": "partial",
+    "submission_date": "2026-05-01",
+    "urgency": "routine",
+    "procedure_category": "retinal_imaging",
+    "patient": {
+      "first_name": "Susan",
+      "last_name": "Park",
+      "date_of_birth": "1965-04-17",
+      "gender": "female",
+      "member_id": "UHC-994102887",
+      "group_number": null,
+      "phone": null,
+      "address": null
+    },
+    "insurance": {
+      "payer_name": "UnitedHealthcare",
+      "plan_type": "PPO",
+      "member_id": "UHC-994102887",
+      "group_number": null,
+      "policy_holder_name": "Susan Park",
+      "policy_holder_relationship": "self",
+      "effective_date": null,
+      "authorization_phone": null
+    },
+    "requesting_provider": {
+      "provider_name": "Dr. David Lin",
+      "npi": "7788990011",
+      "specialty": "Ophthalmology — Glaucoma",
+      "practice_name": "Houston Glaucoma Center",
+      "practice_address": null,
+      "phone": "713-555-0319",
+      "fax": null,
+      "tax_id": null
+    },
+    "rendering_provider": null,
+    "diagnoses": [
+      {
+        "icd10_code": "H40.013",
+        "description": "Open angle with borderline findings, low risk, bilateral",
+        "is_primary": true
+      },
+      {
+        "icd10_code": "H40.053",
+        "description": "Ocular hypertension, bilateral",
+        "is_primary": false
+      }
+    ],
+    "procedures": [
+      {
+        "cpt_code": "92133",
+        "description": "Scanning computerized ophthalmic diagnostic imaging, optic nerve, with interpretation and report, unilateral or bilateral",
+        "laterality": "OU",
+        "quantity": 1
+      },
+      {
+        "cpt_code": "92083",
+        "description": "Visual field examination, extended (e.g., Humphrey full threshold)",
+        "laterality": "OU",
+        "quantity": 1
+      }
+    ],
+    "visual_acuity": [
+      {
+        "eye": "OD",
+        "best_corrected": "20/20",
+        "uncorrected": null,
+        "pinhole": null,
+        "method": "Snellen"
+      },
+      {
+        "eye": "OS",
+        "best_corrected": "20/20",
+        "uncorrected": null,
+        "pinhole": null,
+        "method": "Snellen"
+      }
+    ],
+    "exam_findings": [
+      {
+        "eye": "OD",
+        "structure": "optic nerve",
+        "finding": "Cup-to-disc ratio 0.65, inferior neuroretinal rim thinning suspected. Disc hemorrhage at 7 o'clock.",
+        "severity": "moderate"
+      },
+      {
+        "eye": "OS",
+        "structure": "optic nerve",
+        "finding": "Cup-to-disc ratio 0.55, symmetric rim tissue. No disc hemorrhage.",
+        "severity": "mild"
+      }
+    ],
+    "imaging_studies": [
+      {
+        "modality": "OCT",
+        "date_performed": "2026-04-30",
+        "eye": "OD",
+        "findings": "RNFL average thickness 78 μm (borderline). Inferior quadrant 62 μm (below normal). Superior quadrant 95 μm (normal). GCC analysis shows early inferior thinning.",
+        "central_subfield_thickness_um": null,
+        "subretinal_fluid": null,
+        "intraretinal_fluid": null,
+        "pigment_epithelial_detachment": null,
+        "leakage_pattern": null
+      },
+      {
+        "modality": "OCT",
+        "date_performed": "2026-04-30",
+        "eye": "OS",
+        "findings": "RNFL average thickness 92 μm (normal). All quadrants within normal limits. GCC symmetric.",
+        "central_subfield_thickness_um": null,
+        "subretinal_fluid": null,
+        "intraretinal_fluid": null,
+        "pigment_epithelial_detachment": null,
+        "leakage_pattern": null
+      }
+    ],
+    "prior_treatments": [
+      {
+        "treatment_name": "Latanoprost 0.005% drops",
+        "cpt_or_j_code": null,
+        "start_date": "2025-11-01",
+        "end_date": null,
+        "total_doses": null,
+        "response": "improved",
+        "reason_discontinued": null,
+        "adverse_effects": ["mild conjunctival hyperemia"]
+      }
+    ],
+    "clinical_notes": [
+      {
+        "note_date": "2026-04-30",
+        "author": "Dr. David Lin",
+        "note_type": "progress note",
+        "text": "61-year-old female with ocular hypertension and glaucoma suspect. IOP today: 22 mmHg OD, 20 mmHg OS on latanoprost OU. Disc hemorrhage OD concerning for progressive glaucomatous damage. OCT RNFL shows borderline inferior thinning OD. Requesting OCT optic nerve and visual field testing for baseline documentation and progression analysis."
+      }
+    ],
+    "supporting_documents": [
+      "oct_rnfl_ou_20260430.pdf"
+    ],
+    "prior_auth_number": null,
+    "requested_duration_months": null,
+    "requested_total_doses": null
+  },
+
+  {
+    "_description": "MINIMAL — OCT for macular hole evaluation, bare-minimum data",
+    "case_id": "IMG-003-MINIMAL",
+    "completeness": "minimal",
+    "submission_date": null,
+    "urgency": "routine",
+    "procedure_category": "retinal_imaging",
+    "patient": {
+      "first_name": "Betty",
+      "last_name": "Foster",
+      "date_of_birth": "1950-01-20",
+      "gender": null,
+      "member_id": null,
+      "group_number": null,
+      "phone": null,
+      "address": null
+    },
+    "insurance": {
+      "payer_name": "Cigna",
+      "plan_type": null,
+      "member_id": null,
+      "group_number": null,
+      "policy_holder_name": null,
+      "policy_holder_relationship": null,
+      "effective_date": null,
+      "authorization_phone": null
+    },
+    "requesting_provider": {
+      "provider_name": "Dr. Karen Hughes",
+      "npi": null,
+      "specialty": null,
+      "practice_name": null,
+      "practice_address": null,
+      "phone": null,
+      "fax": null,
+      "tax_id": null
+    },
+    "rendering_provider": null,
+    "diagnoses": [
+      {
+        "icd10_code": "H35.341",
+        "description": "Macular cyst, hole, or pseudohole, right eye",
+        "is_primary": true
+      }
+    ],
+    "procedures": [
+      {
+        "cpt_code": "92134",
+        "description": "OCT posterior segment",
+        "laterality": "OD",
+        "quantity": 1
+      }
+    ],
+    "visual_acuity": [],
+    "exam_findings": [],
+    "imaging_studies": [],
+    "prior_treatments": [],
+    "clinical_notes": [
+      {
+        "note_date": null,
+        "author": null,
+        "note_type": null,
+        "text": "Suspected macular hole OD. OCT requested for evaluation."
+      }
+    ],
+    "supporting_documents": [],
+    "prior_auth_number": null,
+    "requested_duration_months": null,
+    "requested_total_doses": null
+  }
+]
