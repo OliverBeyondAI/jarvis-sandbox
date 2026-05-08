@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xena Image Gen — OpenAI vs Gemini Imagen Evaluation Report</title>
+    <style>
+        :root {
+            --brand-green: #4A7C59;
+            --brand-cream: #F5E6CC;
+            --brand-dark: #2C3E50;
+            --brand-white: #FFFFFF;
+            --openai-color: #10A37F;
+            --gemini-color: #4285F4;
+            --tie-color: #8B5CF6;
+            --bg: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --border: #E2E8F0;
+            --text: #1A202C;
+            --text-muted: #64748B;
+            --warning: #F59E0B;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
+            --shadow-lg: 0 4px 24px rgba(0,0,0,0.10);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg); color: var(--text); line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--brand-dark) 0%, #1a2a38 100%);
+            color: var(--brand-white); padding: 48px 24px 40px; text-align: center;
+        }
+        .header-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600;
+            letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 20px;
+        }
+        .header h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 700; letter-spacing: -0.5px; margin-bottom: 10px; }
+        .header p { font-size: 16px; opacity: 0.75; max-width: 600px; margin: 0 auto; }
+        .header-meta { display: flex; justify-content: center; gap: 24px; margin-top: 24px; flex-wrap: wrap; }
+        .header-meta span { font-size: 13px; opacity: 0.6; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        .section { margin: 40px 0; }
+        .section-title { font-size: 22px; font-weight: 700; color: var(--brand-dark); margin-bottom: 6px; }
+        .section-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+        .card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; margin-bottom: 20px;
+        }
+        .notice {
+            background: #FFFBEB; border: 1px solid #FDE68A; border-radius: var(--radius);
+            padding: 20px 24px; margin-bottom: 24px; font-size: 14px; line-height: 1.7;
+        }
+        .notice strong { color: #92400E; }
+        .verdict-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+        .verdict-card {
+            background: var(--card-bg); border: 2px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; text-align: center;
+            position: relative; transition: transform 0.15s ease;
+        }
+        .verdict-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .verdict-card.recommended {
+            border-color: var(--brand-green);
+            background: linear-gradient(180deg, rgba(74,124,89,0.04) 0%, var(--card-bg) 100%);
+        }
+        .verdict-card.recommended::after {
+            content: 'LEADER'; position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            background: var(--brand-green); color: white; font-size: 10px; font-weight: 700;
+            letter-spacing: 1px; padding: 4px 12px; border-radius: 10px;
+        }
+        .verdict-logo {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 14px; margin: 0 auto 14px; color: white;
+        }
+        .verdict-logo.openai { background: var(--openai-color); }
+        .verdict-logo.gemini { background: var(--gemini-color); }
+        .verdict-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .verdict-model { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+        .verdict-score { font-size: 48px; font-weight: 800; letter-spacing: -2px; line-height: 1; margin-bottom: 4px; }
+        .verdict-score-label { font-size: 13px; color: var(--text-muted); }
+        .verdict-score.openai { color: var(--openai-color); }
+        .verdict-score.gemini { color: var(--gemini-color); }
+        .verdict-detail { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+        .ranking-table {
+            width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px;
+        }
+        .ranking-table thead th {
+            background: var(--bg); padding: 12px 16px; text-align: left; font-weight: 600;
+            font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-muted); border-bottom: 2px solid var(--border);
+        }
+        .ranking-table thead th:first-child { border-radius: 8px 0 0 0; }
+        .ranking-table thead th:last-child { border-radius: 0 8px 0 0; }
+        .ranking-table tbody td {
+            padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle;
+        }
+        .ranking-table tbody tr:last-child td { border-bottom: none; }
+        .score-bar { display: flex; align-items: center; gap: 8px; }
+        .score-bar-track {
+            flex: 1; height: 8px; background: var(--bg);
+            border-radius: 4px; overflow: hidden; min-width: 60px;
+        }
+        .score-bar-fill { height: 100%; border-radius: 4px; }
+        .score-bar-fill.openai { background: var(--openai-color); }
+        .score-bar-fill.gemini { background: var(--gemini-color); }
+        .score-bar-value { font-weight: 700; font-size: 13px; min-width: 36px; text-align: right; }
+        .winner-badge {
+            display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px;
+            border-radius: 12px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .winner-badge.openai { background: rgba(16,163,127,0.1); color: var(--openai-color); }
+        .winner-badge.gemini { background: rgba(66,133,244,0.1); color: var(--gemini-color); }
+        .winner-badge.tie { background: rgba(139,92,246,0.1); color: var(--tie-color); }
+        .usecase-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 20px; }
+        .usecase-card {
+            background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden;
+        }
+        .usecase-header { padding: 20px 24px 14px; display: flex; align-items: center; gap: 12px; }
+        .usecase-title { font-size: 16px; font-weight: 700; }
+        .usecase-prompts { font-size: 12px; color: var(--text-muted); }
+        .usecase-body { padding: 0 24px 20px; }
+        .usecase-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+        }
+        .usecase-row:last-child { border-bottom: none; }
+        .usecase-row-label { color: var(--text-muted); font-weight: 500; }
+        .usecase-row-value { font-weight: 700; }
+        .prompt-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+        .prompt-table thead th {
+            background: var(--bg); padding: 10px 14px; text-align: left; font-weight: 600;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-muted); border-bottom: 2px solid var(--border);
+        }
+        .prompt-table tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+        .prompt-table tbody tr:last-child td { border-bottom: none; }
+        .footer {
+            text-align: center; padding: 40px 24px; color: var(--text-muted);
+            font-size: 13px; border-top: 1px solid var(--border); margin-top: 40px;
+        }
+        @media (max-width: 768px) {
+            .verdict-grid { grid-template-columns: 1fr; }
+            .usecase-grid { grid-template-columns: 1fr; }
+            .header { padding: 36px 16px 32px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-badge">Xena Image Generation Prototype</div>
+    <h1>OpenAI vs Gemini Imagen</h1>
+    <p>Evaluation report comparing image generation models for SMB marketing workflows</p>
+    <div class="header-meta">
+        <span>2026-05-08 06:19 UTC</span>
+        <span>12 Marketing Prompts</span>
+        <span>4 Use Cases</span>
+        <span>Greenleaf Wellness Studio</span>
+        <span>Mode: Automated Metrics</span>
+    </div>
+</div>
+
+<div class="container">
+
+    <div class="section">
+        <div class="notice">
+            <strong>No images were found.</strong> The generation pipeline has not been run yet.
+            To populate this report with real data, configure your API keys in <code>.env</code> and run:<br>
+            <code>python generate_openai.py && python generate_gemini.py && python evaluate.py</code>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Overall Verdict</div>
+        <p class="section-subtitle">Composite ranking based on available data across all dimensions</p>
+
+        <div class="verdict-grid">
+            <div class="verdict-card ">
+                <div class="verdict-logo openai">OAI</div>
+                <div class="verdict-name">OpenAI GPT Image</div>
+                <div class="verdict-model">gpt-image-1</div>
+                <div class="verdict-score openai">0</div>
+                <div class="verdict-score-label">avg score (1&ndash;5 scale)</div>
+                <div class="verdict-detail">0 images evaluated, 12 missing</div>
+            </div>
+            <div class="verdict-card ">
+                <div class="verdict-logo gemini">G</div>
+                <div class="verdict-name">Google Gemini Imagen</div>
+                <div class="verdict-model">imagen-3.0-generate-002</div>
+                <div class="verdict-score gemini">0</div>
+                <div class="verdict-score-label">avg score (1&ndash;5 scale)</div>
+                <div class="verdict-detail">0 images evaluated, 12 missing</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Criterion-Level Ranking</div>
+        <p class="section-subtitle">Head-to-head comparison across evaluation dimensions</p>
+
+        <div class="card" style="overflow-x:auto;">
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th style="min-width:180px;">Criterion</th>
+                        <th style="min-width:200px;">OpenAI GPT Image</th>
+                        <th style="min-width:200px;">Google Gemini Imagen</th>
+                        <th style="min-width:100px;">Winner</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Prompt Adherence</strong><br><span style="font-size:11px;color:var(--text-muted);">How well the image matches the described scene, objects, composition, and mood.</span></td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-bar-track"><div class="score-bar-fill openai" style="width:0%;"></div></div>
+                                <span class="score-bar-value" style="color:var(--openai-color);">0</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-bar-track"><div class="score-bar-fill gemini" style="width:0%;"></div></div>
+                                <span class="score-bar-value" style="color:var(--gemini-color);">0</span>
+                            </div>
+                        </td>
+                        <td><span class="winner-badge tie">No Data</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Visual Quality</strong><br><span style="font-size:11px;color:var(--text-muted);">Technical quality: resolution clarity, artifact-free rendering, lighting, and ov</span></td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-bar-track"><div class="score-bar-fill openai" style="width:0%;"></div></div>
+                                <span class="score-bar-value" style="color:var(--openai-color);">0</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-bar-track"><div class="score-bar-fill gemini" style="width:0%;"></div></div>
+                                <span class="score-bar-value" style="color:var(--gemini-color);">0</span>
+                            </div>
+                        </td>
+                        <td><span class="winner-badge tie">No Data</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Text Rendering Accuracy</strong><br><span style="font-size:11px;color:var(--text-muted);">Accuracy of any text/typography in the image (if applicable to the prompt).</span></td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-bar-track"><div class="score-bar-fill openai" style="width:0%;"></div></div>
+                                <span class="score-bar-value" style="color:var(--openai-color);">0</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-bar-track"><div class="score-bar-fill gemini" style="width:0%;"></div></div>
+                                <span class="score-bar-value" style="color:var(--gemini-color);">0</span>
+                            </div>
+                        </td>
+                        <td><span class="winner-badge tie">No Data</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Brand Consistency</strong><br><span style="font-size:11px;color:var(--text-muted);">Alignment with Greenleaf Wellness Studio brand: colors (#4A7C59, #F5E6CC, #2C3E5</span></td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-bar-track"><div class="score-bar-fill openai" style="width:0%;"></div></div>
+                                <span class="score-bar-value" style="color:var(--openai-color);">0</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="score-bar">
+                                <div class="score-bar-track"><div class="score-bar-fill gemini" style="width:0%;"></div></div>
+                                <span class="score-bar-value" style="color:var(--gemini-color);">0</span>
+                            </div>
+                        </td>
+                        <td><span class="winner-badge tie">No Data</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Use Case Breakdown</div>
+        <p class="section-subtitle">Performance across SMB marketing categories</p>
+        <div class="usecase-grid">
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <div><div class="usecase-title">Blog Headers</div>
+                    <div class="usecase-prompts">3 prompts</div></div>
+                </div>
+                <div class="usecase-body">
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">OpenAI GPT Image</span>
+                        <span class="usecase-row-value" style="color:var(--openai-color);">0 / 5</span>
+                    </div>
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">Google Gemini Imagen</span>
+                        <span class="usecase-row-value" style="color:var(--gemini-color);">0 / 5</span>
+                    </div>
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">Winner</span>
+                        <span class="winner-badge tie">No Data</span>
+                    </div>
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <div><div class="usecase-title">Email Marketing</div>
+                    <div class="usecase-prompts">2 prompts</div></div>
+                </div>
+                <div class="usecase-body">
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">OpenAI GPT Image</span>
+                        <span class="usecase-row-value" style="color:var(--openai-color);">0 / 5</span>
+                    </div>
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">Google Gemini Imagen</span>
+                        <span class="usecase-row-value" style="color:var(--gemini-color);">0 / 5</span>
+                    </div>
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">Winner</span>
+                        <span class="winner-badge tie">No Data</span>
+                    </div>
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <div><div class="usecase-title">Product Announcements</div>
+                    <div class="usecase-prompts">3 prompts</div></div>
+                </div>
+                <div class="usecase-body">
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">OpenAI GPT Image</span>
+                        <span class="usecase-row-value" style="color:var(--openai-color);">0 / 5</span>
+                    </div>
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">Google Gemini Imagen</span>
+                        <span class="usecase-row-value" style="color:var(--gemini-color);">0 / 5</span>
+                    </div>
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">Winner</span>
+                        <span class="winner-badge tie">No Data</span>
+                    </div>
+                </div>
+            </div>
+            <div class="usecase-card">
+                <div class="usecase-header">
+                    <div><div class="usecase-title">Social Media Posts</div>
+                    <div class="usecase-prompts">4 prompts</div></div>
+                </div>
+                <div class="usecase-body">
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">OpenAI GPT Image</span>
+                        <span class="usecase-row-value" style="color:var(--openai-color);">0 / 5</span>
+                    </div>
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">Google Gemini Imagen</span>
+                        <span class="usecase-row-value" style="color:var(--gemini-color);">0 / 5</span>
+                    </div>
+                    <div class="usecase-row">
+                        <span class="usecase-row-label">Winner</span>
+                        <span class="winner-badge tie">No Data</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Per-Prompt Results</div>
+        <p class="section-subtitle">Individual scores for each marketing prompt</p>
+
+        <div class="card" style="overflow-x:auto;">
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>Prompt</th>
+                        <th>Use Case</th>
+                        <th>Provider</th>
+                        <th>Status</th>
+                        <th>Prompt Adh.</th>
+                        <th>Visual Qual.</th>
+                        <th>Text Rend.</th>
+                        <th>Brand Cons.</th>
+                        <th>Avg</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Instagram — Morning Yoga Session</td>
+                        <td><code>social_media</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Instagram — Morning Yoga Session</td>
+                        <td><code>social_media</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Instagram — Organic Smoothie Bowl</td>
+                        <td><code>social_media</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Instagram — Organic Smoothie Bowl</td>
+                        <td><code>social_media</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Facebook — Community Event Announcement</td>
+                        <td><code>social_media</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Facebook — Community Event Announcement</td>
+                        <td><code>social_media</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>LinkedIn — Team Spotlight</td>
+                        <td><code>social_media</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>LinkedIn — Team Spotlight</td>
+                        <td><code>social_media</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Blog — Benefits of Morning Meditation</td>
+                        <td><code>blog_header</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Blog — Benefits of Morning Meditation</td>
+                        <td><code>blog_header</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Blog — Nutrition Tips for Busy Professionals</td>
+                        <td><code>blog_header</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Blog — Nutrition Tips for Busy Professionals</td>
+                        <td><code>blog_header</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Blog — Finding Balance in a Digital World</td>
+                        <td><code>blog_header</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Blog — Finding Balance in a Digital World</td>
+                        <td><code>blog_header</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>New Online Course Launch</td>
+                        <td><code>product_announcement</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>New Online Course Launch</td>
+                        <td><code>product_announcement</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Wellness Retreat Weekend</td>
+                        <td><code>product_announcement</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Wellness Retreat Weekend</td>
+                        <td><code>product_announcement</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Seasonal Smoothie Menu</td>
+                        <td><code>product_announcement</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Seasonal Smoothie Menu</td>
+                        <td><code>product_announcement</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Monthly Newsletter Hero</td>
+                        <td><code>email_marketing</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Monthly Newsletter Hero</td>
+                        <td><code>email_marketing</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Seasonal Promotion Banner</td>
+                        <td><code>email_marketing</code></td>
+                        <td>OpenAI GPT Image</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Seasonal Promotion Banner</td>
+                        <td><code>email_marketing</code></td>
+                        <td>Google Gemini Imagen</td>
+                        <td style="color:var(--warning);font-weight:600;">Missing</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td>&mdash;</td>
+                        <td><strong>&mdash;</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Methodology</div>
+        <div class="card">
+            <div style="font-size:13px; color:var(--text-muted); line-height:1.8;">
+                <p style="margin-bottom:12px;">
+                    <strong>Evaluation mode:</strong> Automated metrics (resolution, file size, color proximity)
+                </p>
+                <p style="margin-bottom:12px;">
+                    <strong>Scoring:</strong> Each image is scored 1&ndash;5 on four criteria: prompt adherence,
+                    visual quality, text rendering accuracy, and brand consistency. A score of 0 indicates the
+                    image was not found (generation not run or failed).
+                </p>
+                <p style="margin-bottom:12px;">
+                    <strong>Models:</strong> OpenAI <code>gpt-image-1</code> and
+                    Google <code>imagen-3.0-generate-002</code>.
+                </p>
+                <p>
+                    <strong>Data source:</strong> All scores in this report are derived from the evaluation pipeline (no images were generated yet). Run the generation scripts with valid API keys to populate scores.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">How to Run</div>
+        <div class="card">
+            <div style="font-size:13px; color:var(--text-muted); line-height:1.8;">
+                <p style="margin-bottom:8px;"><strong>1.</strong> Set API keys in <code>.env</code>:</p>
+                <pre style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:12px;font-size:12px;">OPENAI_API_KEY=sk-...
+GOOGLE_GENAI_API_KEY=...</pre>
+                <p style="margin-bottom:8px;"><strong>2.</strong> Generate images:</p>
+                <pre style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:12px;font-size:12px;">python generate_openai.py
+python generate_gemini.py</pre>
+                <p style="margin-bottom:8px;"><strong>3.</strong> Evaluate and produce reports:</p>
+                <pre style="background:var(--bg);padding:12px;border-radius:8px;margin-bottom:12px;font-size:12px;">python evaluate.py          # automated metrics
+python evaluate.py --llm    # LLM-assisted (requires ANTHROPIC_API_KEY)</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    <p><strong>Xena Image Generation Prototype</strong> &mdash; Evaluation Report</p>
+    <p style="margin-top:4px;">Generated 2026-05-08 06:19 UTC &middot; OpenAI GPT Image vs Google Gemini Imagen &middot; 12 prompts &middot; 4 use cases</p>
+</div>
+
+</body>
+</html>

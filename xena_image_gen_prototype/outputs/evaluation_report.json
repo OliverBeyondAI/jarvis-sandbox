@@ -1,0 +1,578 @@
+[
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Instagram \u2014 Morning Yoga Session",
+    "use_case": "social_media",
+    "prompt": "A serene morning yoga session in a sunlit studio with large windows, natural wood floors, and lush green plants. A diverse group of people practicing tree pose. Soft golden-hour light streaming in. Warm, inviting atmosphere with earth tones and green accents. Professional lifestyle photography style, high resolution.",
+    "style_notes": "Lifestyle photography, warm tones, aspirational",
+    "aspect_ratio": "1:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Instagram \u2014 Morning Yoga Session",
+    "use_case": "social_media",
+    "prompt": "A serene morning yoga session in a sunlit studio with large windows, natural wood floors, and lush green plants. A diverse group of people practicing tree pose. Soft golden-hour light streaming in. Warm, inviting atmosphere with earth tones and green accents. Professional lifestyle photography style, high resolution.",
+    "style_notes": "Lifestyle photography, warm tones, aspirational",
+    "aspect_ratio": "1:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Instagram \u2014 Organic Smoothie Bowl",
+    "use_case": "social_media",
+    "prompt": "A beautifully arranged acai smoothie bowl topped with fresh berries, granola, coconut flakes, and edible flowers, placed on a natural wood table with a sprig of mint. Overhead flat-lay shot. Soft natural lighting. Clean, minimal background with a linen napkin and small potted succulent. Food photography style, vibrant colors.",
+    "style_notes": "Flat-lay food photography, vibrant, clean",
+    "aspect_ratio": "1:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Instagram \u2014 Organic Smoothie Bowl",
+    "use_case": "social_media",
+    "prompt": "A beautifully arranged acai smoothie bowl topped with fresh berries, granola, coconut flakes, and edible flowers, placed on a natural wood table with a sprig of mint. Overhead flat-lay shot. Soft natural lighting. Clean, minimal background with a linen napkin and small potted succulent. Food photography style, vibrant colors.",
+    "style_notes": "Flat-lay food photography, vibrant, clean",
+    "aspect_ratio": "1:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Facebook \u2014 Community Event Announcement",
+    "use_case": "social_media",
+    "prompt": "A welcoming community wellness event in an outdoor garden setting. String lights, yoga mats arranged in a circle, a wooden stage with a small podium. Sunset colors in the sky. People chatting and smiling. Warm and inclusive atmosphere. Professional event photography.",
+    "style_notes": "Event photography, warm sunset palette, community feel",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Facebook \u2014 Community Event Announcement",
+    "use_case": "social_media",
+    "prompt": "A welcoming community wellness event in an outdoor garden setting. String lights, yoga mats arranged in a circle, a wooden stage with a small podium. Sunset colors in the sky. People chatting and smiling. Warm and inclusive atmosphere. Professional event photography.",
+    "style_notes": "Event photography, warm sunset palette, community feel",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "LinkedIn \u2014 Team Spotlight",
+    "use_case": "social_media",
+    "prompt": "A portrait of a wellness coach in a modern studio, smiling warmly at the camera. Clean, bright background with soft bokeh of green plants. Professional attire with a natural, approachable look. Corporate headshot style with lifestyle warmth. Studio lighting.",
+    "style_notes": "Professional headshot, approachable, bright",
+    "aspect_ratio": "1:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "LinkedIn \u2014 Team Spotlight",
+    "use_case": "social_media",
+    "prompt": "A portrait of a wellness coach in a modern studio, smiling warmly at the camera. Clean, bright background with soft bokeh of green plants. Professional attire with a natural, approachable look. Corporate headshot style with lifestyle warmth. Studio lighting.",
+    "style_notes": "Professional headshot, approachable, bright",
+    "aspect_ratio": "1:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Blog \u2014 Benefits of Morning Meditation",
+    "use_case": "blog_header",
+    "prompt": "A peaceful zen garden scene at dawn with smooth stones, raked sand patterns, a single bonsai tree, and soft morning mist. Pastel colors with hints of green and gold. Wide cinematic composition. Calm, contemplative mood. Digital art with photorealistic textures.",
+    "style_notes": "Zen aesthetic, cinematic wide, contemplative",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Blog \u2014 Benefits of Morning Meditation",
+    "use_case": "blog_header",
+    "prompt": "A peaceful zen garden scene at dawn with smooth stones, raked sand patterns, a single bonsai tree, and soft morning mist. Pastel colors with hints of green and gold. Wide cinematic composition. Calm, contemplative mood. Digital art with photorealistic textures.",
+    "style_notes": "Zen aesthetic, cinematic wide, contemplative",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Blog \u2014 Nutrition Tips for Busy Professionals",
+    "use_case": "blog_header",
+    "prompt": "A modern kitchen countertop with a neatly arranged meal-prep scene: glass containers with colorful healthy meals, fresh vegetables, a cutting board with herbs, and a recipe notebook. Bright, clean, organized. Natural daylight from a side window. Editorial food photography.",
+    "style_notes": "Editorial, organized, aspirational lifestyle",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Blog \u2014 Nutrition Tips for Busy Professionals",
+    "use_case": "blog_header",
+    "prompt": "A modern kitchen countertop with a neatly arranged meal-prep scene: glass containers with colorful healthy meals, fresh vegetables, a cutting board with herbs, and a recipe notebook. Bright, clean, organized. Natural daylight from a side window. Editorial food photography.",
+    "style_notes": "Editorial, organized, aspirational lifestyle",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Blog \u2014 Finding Balance in a Digital World",
+    "use_case": "blog_header",
+    "prompt": "A split-composition image: the left half shows a cluttered desk with glowing screens and notifications, the right half shows a calm nature scene with a person sitting peacefully by a lake. The transition between halves is a smooth gradient. Conceptual illustration style.",
+    "style_notes": "Conceptual, split composition, contrast theme",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Blog \u2014 Finding Balance in a Digital World",
+    "use_case": "blog_header",
+    "prompt": "A split-composition image: the left half shows a cluttered desk with glowing screens and notifications, the right half shows a calm nature scene with a person sitting peacefully by a lake. The transition between halves is a smooth gradient. Conceptual illustration style.",
+    "style_notes": "Conceptual, split composition, contrast theme",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "New Online Course Launch",
+    "use_case": "product_announcement",
+    "prompt": "A modern laptop on a clean desk displaying a beautiful wellness course landing page. Surrounding the laptop are a cup of herbal tea, a journal, and a small plant. Soft gradient background blending from forest green to cream. Clean product-shot aesthetic with gentle shadows. Marketing mockup.",
+    "style_notes": "Product mockup, clean, premium feel",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "New Online Course Launch",
+    "use_case": "product_announcement",
+    "prompt": "A modern laptop on a clean desk displaying a beautiful wellness course landing page. Surrounding the laptop are a cup of herbal tea, a journal, and a small plant. Soft gradient background blending from forest green to cream. Clean product-shot aesthetic with gentle shadows. Marketing mockup.",
+    "style_notes": "Product mockup, clean, premium feel",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Wellness Retreat Weekend",
+    "use_case": "product_announcement",
+    "prompt": "An idyllic countryside retreat setting: a rustic-modern cabin surrounded by rolling green hills, a yoga deck overlooking a misty valley at sunrise. Warm golden light. A few people in comfortable athleisure walking along a nature path. Travel editorial photography, aspirational.",
+    "style_notes": "Travel editorial, aspirational, golden hour",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Wellness Retreat Weekend",
+    "use_case": "product_announcement",
+    "prompt": "An idyllic countryside retreat setting: a rustic-modern cabin surrounded by rolling green hills, a yoga deck overlooking a misty valley at sunrise. Warm golden light. A few people in comfortable athleisure walking along a nature path. Travel editorial photography, aspirational.",
+    "style_notes": "Travel editorial, aspirational, golden hour",
+    "aspect_ratio": "16:9",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Seasonal Smoothie Menu",
+    "use_case": "product_announcement",
+    "prompt": "Three artfully arranged smoothies in glass bottles with natural ingredient garnishes \u2014 one green (spinach, kiwi), one pink (strawberry, beet), one golden (mango, turmeric). Set against a marble countertop with scattered fresh ingredients. Bright studio lighting. Premium beverage photography with condensation details.",
+    "style_notes": "Beverage photography, studio-lit, premium",
+    "aspect_ratio": "1:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Seasonal Smoothie Menu",
+    "use_case": "product_announcement",
+    "prompt": "Three artfully arranged smoothies in glass bottles with natural ingredient garnishes \u2014 one green (spinach, kiwi), one pink (strawberry, beet), one golden (mango, turmeric). Set against a marble countertop with scattered fresh ingredients. Bright studio lighting. Premium beverage photography with condensation details.",
+    "style_notes": "Beverage photography, studio-lit, premium",
+    "aspect_ratio": "1:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Monthly Newsletter Hero",
+    "use_case": "email_marketing",
+    "prompt": "An abstract wellness-themed background with soft flowing shapes in forest green, warm cream, and gentle gold. Organic curves suggesting leaves and gentle waves. Plenty of negative space for text overlay. Modern, minimal graphic design.",
+    "style_notes": "Abstract background, text-overlay-friendly, brand colors",
+    "aspect_ratio": "3:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Monthly Newsletter Hero",
+    "use_case": "email_marketing",
+    "prompt": "An abstract wellness-themed background with soft flowing shapes in forest green, warm cream, and gentle gold. Organic curves suggesting leaves and gentle waves. Plenty of negative space for text overlay. Modern, minimal graphic design.",
+    "style_notes": "Abstract background, text-overlay-friendly, brand colors",
+    "aspect_ratio": "3:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "openai",
+    "provider_label": "OpenAI GPT Image",
+    "title": "Seasonal Promotion Banner",
+    "use_case": "email_marketing",
+    "prompt": "A cozy autumn wellness scene: a warm-toned studio with candles, a soft blanket draped over a meditation cushion, dried eucalyptus arrangement, and warm amber lighting. Left third of image has open space for promotional text. Lifestyle photography, editorial.",
+    "style_notes": "Seasonal, cozy, editorial with text space",
+    "aspect_ratio": "2:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  },
+  {
+    "provider": "gemini",
+    "provider_label": "Google Gemini Imagen",
+    "title": "Seasonal Promotion Banner",
+    "use_case": "email_marketing",
+    "prompt": "A cozy autumn wellness scene: a warm-toned studio with candles, a soft blanket draped over a meditation cushion, dried eucalyptus arrangement, and warm amber lighting. Left third of image has open space for promotional text. Lifestyle photography, editorial.",
+    "style_notes": "Seasonal, cozy, editorial with text space",
+    "aspect_ratio": "2:1",
+    "image_info": null,
+    "scores": {
+      "prompt_adherence": 0,
+      "visual_quality": 0,
+      "text_rendering": 0,
+      "brand_consistency": 0
+    },
+    "notes": {
+      "prompt_adherence": "Image not found \u2014 generation may have failed.",
+      "visual_quality": "Image not found \u2014 generation may have failed.",
+      "text_rendering": "Image not found \u2014 generation may have failed.",
+      "brand_consistency": "Image not found \u2014 generation may have failed."
+    },
+    "total_score": 0,
+    "avg_score": 0.0
+  }
+]
