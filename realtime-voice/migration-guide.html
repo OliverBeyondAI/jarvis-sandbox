@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Stack Migration Guide — ConversationRelay to GPT Realtime</title>
+    <style>
+        :root {
+            --bg-primary: #0a0e17;
+            --bg-secondary: #111827;
+            --bg-card: #1a2236;
+            --bg-card-hover: #1f2a42;
+            --bg-input: #0d1321;
+            --border: #1e2d4a;
+            --border-light: #253553;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #3b82f6;
+            --accent-light: #60a5fa;
+            --accent-glow: rgba(59, 130, 246, 0.15);
+            --accent-dim: #1e3a5f;
+            --success: #22c55e;
+            --success-dim: rgba(34, 197, 94, 0.12);
+            --error: #ef4444;
+            --error-dim: rgba(239, 68, 68, 0.12);
+            --warning: #f59e0b;
+            --warning-dim: rgba(245, 158, 11, 0.12);
+            --purple: #a78bfa;
+            --purple-dim: rgba(167, 139, 250, 0.12);
+            --cyan: #22d3ee;
+            --cyan-dim: rgba(34, 211, 238, 0.12);
+            --pink: #f472b6;
+            --pink-dim: rgba(244, 114, 182, 0.12);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Navigation ─────────────────────────────────── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 14, 23, 0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent), #6366f1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: white;
+        }
+
+        .nav-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
+        }
+
+        /* ── Hero ───────────────────────────────────────── */
+        .hero {
+            padding: 120px 32px 64px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 400px;
+            background: radial-gradient(ellipse, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            font-size: 12px;
+            color: var(--accent-light);
+            font-weight: 500;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 40px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+
+        .hero h1 .gradient-text {
+            background: linear-gradient(135deg, var(--accent-light), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: 17px;
+            color: var(--text-secondary);
+            max-width: 640px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .hero-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stack-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .stack-label.current {
+            background: var(--error-dim);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #fca5a5;
+        }
+
+        .stack-label.target {
+            background: var(--success-dim);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            color: #86efac;
+        }
+
+        .arrow-icon {
+            color: var(--text-muted);
+            font-size: 20px;
+        }
+
+        /* ── Container ──────────────────────────────────── */
+        .container {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* ── Section ────────────────────────────────────── */
+        .section {
+            margin-bottom: 72px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .section-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .section h2 {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-bottom: 28px;
+            max-width: 720px;
+        }
+
+        /* ── Architecture Diagrams ──────────────────────── */
+        .arch-grid {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr;
+            gap: 0;
+            align-items: start;
+            margin-bottom: 40px;
+        }
+
+        .arch-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            position: relative;
+        }
+
+        .arch-card h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .arch-card.current h3 { color: #fca5a5; }
+        .arch-card.target h3 { color: #86efac; }
+
+        .arch-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .arch-label.current {
+            background: var(--error-dim);
+            color: #fca5a5;
+        }
+
+        .arch-label.target {
+            background: var(--success-dim);
+            color: #86efac;
+        }
+
+        .arch-transition {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 80px;
+        }
+
+        .arch-transition svg {
+            color: var(--text-muted);
+        }
+
+        /* Component nodes inside diagram */
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .arch-node {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-input);
+            font-size: 13px;
+            position: relative;
+        }
+
+        .arch-node .node-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            font-weight: 600;
+        }
+
+        .arch-node .node-label {
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .arch-node .node-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .arch-node.phone .node-icon { background: var(--purple-dim); color: var(--purple); }
+        .arch-node.relay .node-icon { background: var(--error-dim); color: var(--error); }
+        .arch-node.tts .node-icon { background: var(--pink-dim); color: var(--pink); }
+        .arch-node.llm .node-icon { background: var(--accent-glow); color: var(--accent-light); }
+        .arch-node.sip .node-icon { background: var(--success-dim); color: var(--success); }
+        .arch-node.ws .node-icon { background: var(--cyan-dim); color: var(--cyan); }
+        .arch-node.app .node-icon { background: var(--warning-dim); color: var(--warning); }
+
+        .arch-connector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 0;
+            color: var(--text-muted);
+        }
+
+        .arch-connector svg {
+            opacity: 0.4;
+        }
+
+        /* ── Comparison Table ───────────────────────────── */
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .comparison-table thead th {
+            background: var(--bg-secondary);
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table thead th:first-child {
+            width: 180px;
+        }
+
+        .comparison-table tbody td {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .comparison-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table .dim-header {
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .comparison-table .current-col {
+            color: var(--text-secondary);
+        }
+
+        .comparison-table .target-col {
+            color: var(--text-primary);
+        }
+
+        .col-tag {
+            display: inline-block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
+        .col-tag.removed { background: var(--error-dim); color: #fca5a5; }
+        .col-tag.added { background: var(--success-dim); color: #86efac; }
+        .col-tag.changed { background: var(--warning-dim); color: #fcd34d; }
+
+        /* ── Steps / Timeline ───────────────────────────── */
+        .timeline {
+            position: relative;
+            padding-left: 36px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 8px;
+            bottom: 8px;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .timeline-step {
+            position: relative;
+            margin-bottom: 32px;
+        }
+
+        .timeline-step:last-child {
+            margin-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -36px;
+            top: 4px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .timeline-dot-inner {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .timeline-step.phase-1 .timeline-dot { border-color: var(--success); }
+        .timeline-step.phase-1 .timeline-dot-inner { background: var(--success); }
+        .timeline-step.phase-2 .timeline-dot { border-color: var(--accent); }
+        .timeline-step.phase-2 .timeline-dot-inner { background: var(--accent); }
+        .timeline-step.phase-3 .timeline-dot { border-color: var(--warning); }
+        .timeline-step.phase-3 .timeline-dot-inner { background: var(--warning); }
+        .timeline-step.phase-4 .timeline-dot { border-color: var(--purple); }
+        .timeline-step.phase-4 .timeline-dot-inner { background: var(--purple); }
+
+        .step-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px 24px;
+        }
+
+        .step-phase {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .phase-1 .step-phase { color: var(--success); }
+        .phase-2 .step-phase { color: var(--accent-light); }
+        .phase-3 .step-phase { color: var(--warning); }
+        .phase-4 .step-phase { color: var(--purple); }
+
+        .step-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .step-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+
+        .step-details {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .step-details li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .step-details li::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            flex-shrink: 0;
+            margin-top: 7px;
+        }
+
+        /* ── Code Blocks ────────────────────────────────── */
+        .code-block {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: 'SF Mono', Menlo, Consolas, monospace;
+        }
+
+        .code-body {
+            padding: 16px;
+            font-family: 'SF Mono', Menlo, Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+            color: var(--text-secondary);
+        }
+
+        .code-body .kw { color: var(--purple); }
+        .code-body .str { color: var(--success); }
+        .code-body .cm { color: var(--text-muted); font-style: italic; }
+        .code-body .fn { color: var(--accent-light); }
+        .code-body .num { color: var(--warning); }
+        .code-body .var { color: var(--cyan); }
+
+        /* ── Info Cards / Callouts ──────────────────────── */
+        .callout {
+            display: flex;
+            gap: 14px;
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .callout-icon {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-top: 1px;
+        }
+
+        .callout.info {
+            background: var(--accent-glow);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: var(--text-secondary);
+        }
+        .callout.info .callout-icon { background: rgba(59, 130, 246, 0.2); color: var(--accent-light); }
+
+        .callout.warn {
+            background: var(--warning-dim);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            color: var(--text-secondary);
+        }
+        .callout.warn .callout-icon { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+
+        .callout.success {
+            background: var(--success-dim);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: var(--text-secondary);
+        }
+        .callout.success .callout-icon { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+
+        .callout.danger {
+            background: var(--error-dim);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: var(--text-secondary);
+        }
+        .callout.danger .callout-icon { background: rgba(239, 68, 68, 0.2); color: var(--error); }
+
+        .callout strong { color: var(--text-primary); }
+
+        /* ── Metric Cards ───────────────────────────────── */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 32px;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-family: 'SF Mono', Menlo, monospace;
+        }
+
+        .metric-value.green { color: var(--success); }
+        .metric-value.blue { color: var(--accent-light); }
+        .metric-value.yellow { color: var(--warning); }
+        .metric-value.purple { color: var(--purple); }
+
+        .metric-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 500;
+        }
+
+        .metric-detail {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        /* ── Integration Points ─────────────────────────── */
+        .integration-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .integration-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .integration-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .integration-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .int-badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 4px;
+        }
+
+        .int-badge.critical { background: var(--error-dim); color: #fca5a5; }
+        .int-badge.major { background: var(--warning-dim); color: #fcd34d; }
+        .int-badge.minor { background: var(--success-dim); color: #86efac; }
+
+        .int-changes {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .int-changes li {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .int-change-tag {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .int-change-tag.remove { background: var(--error-dim); color: #fca5a5; }
+        .int-change-tag.add { background: var(--success-dim); color: #86efac; }
+        .int-change-tag.modify { background: var(--warning-dim); color: #fcd34d; }
+
+        /* ── Cost Table ─────────────────────────────────── */
+        .cost-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .cost-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+        }
+
+        .cost-card h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cost-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .cost-line:last-child {
+            border-bottom: none;
+        }
+
+        .cost-line .cost-name {
+            color: var(--text-secondary);
+        }
+
+        .cost-line .cost-amount {
+            font-family: 'SF Mono', Menlo, monospace;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .cost-line.total {
+            border-top: 2px solid var(--border-light);
+            border-bottom: none;
+            margin-top: 4px;
+            padding-top: 12px;
+            font-weight: 600;
+        }
+
+        .cost-line.total .cost-amount { font-size: 16px; }
+
+        /* ── Risk Matrix ────────────────────────────────── */
+        .risk-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .risk-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .risk-level {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .risk-level.high { background: var(--error-dim); color: #fca5a5; }
+        .risk-level.medium { background: var(--warning-dim); color: #fcd34d; }
+        .risk-level.low { background: var(--success-dim); color: #86efac; }
+
+        .risk-content h5 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .risk-content p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .risk-mitigation {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .risk-mitigation strong {
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        /* ── Checklist ──────────────────────────────────── */
+        .checklist {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .check-box {
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid var(--border-light);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* ── Footer ─────────────────────────────────────── */
+        footer {
+            padding: 40px 32px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 40px;
+        }
+
+        /* ── Responsive ─────────────────────────────────── */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 28px; }
+            .hero-sub { font-size: 15px; }
+            .arch-grid { grid-template-columns: 1fr; gap: 16px; }
+            .arch-transition { display: none; }
+            .metrics-grid { grid-template-columns: 1fr 1fr; }
+            .integration-grid { grid-template-columns: 1fr; }
+            .cost-grid { grid-template-columns: 1fr; }
+            .comparison-table { font-size: 12px; }
+            .comparison-table thead th,
+            .comparison-table tbody td { padding: 10px 12px; }
+            .hero-arrow { flex-direction: column; gap: 10px; }
+            .nav-links { display: none; }
+            nav { padding: 0 16px; }
+            .container { padding: 0 16px; }
+            .hero { padding: 100px 16px 48px; }
+        }
+
+        @media (max-width: 480px) {
+            .metrics-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-brand">
+        <div class="nav-logo">J</div>
+        <span class="nav-title">Migration Guide</span>
+    </div>
+    <div class="nav-links">
+        <a href="#architecture">Architecture</a>
+        <a href="#comparison">Comparison</a>
+        <a href="#integration">Integration</a>
+        <a href="#migration">Migration Plan</a>
+        <a href="#cost">Cost</a>
+        <a href="#risks">Risks</a>
+    </div>
+</nav>
+
+<!-- ── Hero ──────────────────────────────────────────────────────── -->
+<div class="hero">
+    <div class="hero-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Voice Infrastructure Migration
+    </div>
+    <h1>ConversationRelay + ElevenLabs<br><span class="gradient-text">to GPT Realtime with SIP</span></h1>
+    <p class="hero-sub">
+        Complete migration path from the current multi-vendor voice stack (Twilio ConversationRelay, ElevenLabs TTS, Claude on Bedrock) to OpenAI's unified GPT Realtime API with native SIP telephony.
+    </p>
+    <div class="hero-arrow">
+        <span class="stack-label current">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Twilio + ElevenLabs + Claude
+        </span>
+        <span class="arrow-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </span>
+        <span class="stack-label target">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            GPT Realtime + SIP
+        </span>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- ── Section 1: Architecture ────────────────────────────────── -->
+    <div class="section" id="architecture">
+        <div class="section-header">
+            <div class="section-num" style="background: var(--accent-glow); color: var(--accent-light);">1</div>
+            <h2>Architecture Change</h2>
+        </div>
+        <p class="section-desc">
+            The migration replaces a four-component orchestration layer with a single API that handles STT, LLM reasoning, and TTS natively. The telephony layer shifts from Twilio ConversationRelay (WebSocket-based media relay) to direct SIP trunk connectivity.
+        </p>
+
+        <div class="arch-grid">
+            <!-- Current Architecture -->
+            <div class="arch-card current">
+                <h3>
+                    <span class="arch-label current">Current</span>
+                    Multi-Vendor Stack
+                </h3>
+                <div class="arch-flow">
+                    <div class="arch-node phone">
+                        <div class="node-icon">Ph</div>
+                        <div>
+                            <div class="node-label">PSTN / Phone</div>
+                            <div class="node-detail">Inbound call from user</div>
+                        </div>
+                    </div>
+                    <div class="arch-connector"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="0" x2="8" y2="16"/><polyline points="4 12 8 16 12 12"/></svg></div>
+                    <div class="arch-node relay">
+                        <div class="node-icon">TR</div>
+                        <div>
+                            <div class="node-label">Twilio ConversationRelay</div>
+                            <div class="node-detail">WebSocket media stream to your server</div>
+                        </div>
+                    </div>
+                    <div class="arch-connector"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="0" x2="8" y2="16"/><polyline points="4 12 8 16 12 12"/></svg></div>
+                    <div class="arch-node app">
+                        <div class="node-icon">Sv</div>
+                        <div>
+                            <div class="node-label">Your Application Server</div>
+                            <div class="node-detail">Orchestrates STT, LLM, TTS pipeline</div>
+                        </div>
+                    </div>
+                    <div class="arch-connector"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="0" x2="8" y2="16"/><polyline points="4 12 8 16 12 12"/></svg></div>
+                    <div class="arch-node tts">
+                        <div class="node-icon">11</div>
+                        <div>
+                            <div class="node-label">ElevenLabs TTS</div>
+                            <div class="node-detail">Text-to-speech synthesis via API</div>
+                        </div>
+                    </div>
+                    <div class="arch-connector"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="0" x2="8" y2="16"/><polyline points="4 12 8 16 12 12"/></svg></div>
+                    <div class="arch-node llm">
+                        <div class="node-icon">Cl</div>
+                        <div>
+                            <div class="node-label">Claude on Bedrock</div>
+                            <div class="node-detail">LLM reasoning via AWS Bedrock</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arrow -->
+            <div class="arch-transition">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </div>
+
+            <!-- Target Architecture -->
+            <div class="arch-card target">
+                <h3>
+                    <span class="arch-label target">Target</span>
+                    Unified GPT Realtime
+                </h3>
+                <div class="arch-flow">
+                    <div class="arch-node phone">
+                        <div class="node-icon">Ph</div>
+                        <div>
+                            <div class="node-label">PSTN / Phone</div>
+                            <div class="node-detail">Inbound call from user</div>
+                        </div>
+                    </div>
+                    <div class="arch-connector"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="0" x2="8" y2="16"/><polyline points="4 12 8 16 12 12"/></svg></div>
+                    <div class="arch-node sip">
+                        <div class="node-icon">SI</div>
+                        <div>
+                            <div class="node-label">Twilio SIP Trunk</div>
+                            <div class="node-detail">Routes PSTN calls via SIP INVITE</div>
+                        </div>
+                    </div>
+                    <div class="arch-connector"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="0" x2="8" y2="16"/><polyline points="4 12 8 16 12 12"/></svg></div>
+                    <div class="arch-node ws">
+                        <div class="node-icon">RT</div>
+                        <div>
+                            <div class="node-label">OpenAI Realtime API</div>
+                            <div class="node-detail">Unified STT + LLM + TTS over WebSocket</div>
+                        </div>
+                    </div>
+                    <div class="arch-connector"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="0" x2="8" y2="16"/><polyline points="4 12 8 16 12 12"/></svg></div>
+                    <div class="arch-node app">
+                        <div class="node-icon">Sv</div>
+                        <div>
+                            <div class="node-label">Your Application Server</div>
+                            <div class="node-detail">Session mgmt, tool dispatch, logging</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout success" style="margin-top: 16px; margin-bottom: 0;">
+                    <div class="callout-icon">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div><strong>Key benefit:</strong> STT, reasoning, and TTS happen in a single model inference pass. No inter-service round trips for the audio pipeline.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 2: Comparison ──────────────────────────────────── -->
+    <div class="section" id="comparison">
+        <div class="section-header">
+            <div class="section-num" style="background: var(--purple-dim); color: var(--purple);">2</div>
+            <h2>Component-by-Component Comparison</h2>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value green">3 &rarr; 1</div>
+                <div class="metric-label">API Vendors</div>
+                <div class="metric-detail">Twilio + ElevenLabs + Bedrock &rarr; OpenAI</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value blue">&lt;500ms</div>
+                <div class="metric-label">Target Latency</div>
+                <div class="metric-detail">Eliminates inter-service hops</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value yellow">G.711</div>
+                <div class="metric-label">Native Codec</div>
+                <div class="metric-detail">No transcoding overhead</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value purple">8</div>
+                <div class="metric-label">Built-in Voices</div>
+                <div class="metric-detail">Replaces ElevenLabs voice library</div>
+            </div>
+        </div>
+
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Dimension</th>
+                    <th>Current Stack</th>
+                    <th>GPT Realtime + SIP</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="dim-header">Telephony</td>
+                    <td class="current-col">Twilio ConversationRelay<br><small>WebSocket media stream to app server</small></td>
+                    <td class="target-col">Twilio SIP Trunking <span class="col-tag changed">Changed</span><br><small>SIP INVITE routed to OpenAI endpoint</small></td>
+                </tr>
+                <tr>
+                    <td class="dim-header">Speech-to-Text</td>
+                    <td class="current-col">Separate STT service or Twilio built-in<br><small>Custom integration in orchestrator</small></td>
+                    <td class="target-col">Native in Realtime API <span class="col-tag removed">Removed</span><br><small>Model processes audio natively as tokens</small></td>
+                </tr>
+                <tr>
+                    <td class="dim-header">LLM Reasoning</td>
+                    <td class="current-col">Claude (Sonnet/Opus) via AWS Bedrock<br><small>REST API calls per turn</small></td>
+                    <td class="target-col">GPT-4o Realtime <span class="col-tag changed">Changed</span><br><small>Unified audio+text model, WebSocket</small></td>
+                </tr>
+                <tr>
+                    <td class="dim-header">Text-to-Speech</td>
+                    <td class="current-col">ElevenLabs API<br><small>Streaming TTS, 30+ voices, voice cloning</small></td>
+                    <td class="target-col">Native in Realtime API <span class="col-tag removed">Removed</span><br><small>8 built-in voices, natural inflection</small></td>
+                </tr>
+                <tr>
+                    <td class="dim-header">Turn Detection</td>
+                    <td class="current-col">Custom VAD / silence detection<br><small>Implemented in app server</small></td>
+                    <td class="target-col">Semantic VAD (built-in) <span class="col-tag added">Added</span><br><small>Model-based turn detection, configurable eagerness</small></td>
+                </tr>
+                <tr>
+                    <td class="dim-header">Audio Codec</td>
+                    <td class="current-col">Varies (PCM, opus, mulaw)<br><small>Transcoding often required</small></td>
+                    <td class="target-col">G.711 u-law/a-law native <span class="col-tag added">Added</span><br><small>Zero transcoding for telephony</small></td>
+                </tr>
+                <tr>
+                    <td class="dim-header">Tool / Function Calling</td>
+                    <td class="current-col">Claude tool_use via Bedrock API<br><small>JSON schema, parallel tools</small></td>
+                    <td class="target-col">OpenAI function_calling <span class="col-tag changed">Changed</span><br><small>Same JSON schema pattern, minor syntax diff</small></td>
+                </tr>
+                <tr>
+                    <td class="dim-header">Conversation State</td>
+                    <td class="current-col">App-managed (DB / in-memory)<br><small>Full control over context window</small></td>
+                    <td class="target-col">Server-side managed <span class="col-tag changed">Changed</span><br><small>Items can be added/deleted via events</small></td>
+                </tr>
+                <tr>
+                    <td class="dim-header">Connection Model</td>
+                    <td class="current-col">REST (Bedrock) + WS (Twilio) + REST (11L)<br><small>Multiple connection pools</small></td>
+                    <td class="target-col">Single persistent WebSocket <span class="col-tag changed">Changed</span><br><small>All events over one connection</small></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ── Section 3: Integration Points ──────────────────────────── -->
+    <div class="section" id="integration">
+        <div class="section-header">
+            <div class="section-num" style="background: var(--warning-dim); color: var(--warning);">3</div>
+            <h2>Integration Points &amp; Changes Required</h2>
+        </div>
+        <p class="section-desc">
+            Each integration point requires specific changes. Critical items affect call flow directly; major items change existing APIs; minor items are configuration-only.
+        </p>
+
+        <div class="integration-grid">
+            <div class="integration-card">
+                <h4>
+                    <span class="int-badge critical">Critical</span>
+                    Twilio Call Routing
+                </h4>
+                <p>Replace ConversationRelay TwiML with SIP trunk configuration pointing to OpenAI's SIP endpoint.</p>
+                <ul class="int-changes">
+                    <li><span class="int-change-tag remove">Remove</span> ConversationRelay WebSocket handler</li>
+                    <li><span class="int-change-tag remove">Remove</span> TwiML &lt;Connect&gt;&lt;ConversationRelay&gt; verb</li>
+                    <li><span class="int-change-tag add">Add</span> Twilio SIP Trunk to OpenAI SIP endpoint</li>
+                    <li><span class="int-change-tag add">Add</span> Session creation webhook for inbound calls</li>
+                    <li><span class="int-change-tag modify">Modify</span> Twilio phone number routing to SIP trunk</li>
+                </ul>
+            </div>
+
+            <div class="integration-card">
+                <h4>
+                    <span class="int-badge critical">Critical</span>
+                    Audio Pipeline
+                </h4>
+                <p>Eliminate the STT &rarr; LLM &rarr; TTS orchestration chain. The Realtime API handles this internally.</p>
+                <ul class="int-changes">
+                    <li><span class="int-change-tag remove">Remove</span> ElevenLabs TTS client and streaming logic</li>
+                    <li><span class="int-change-tag remove">Remove</span> STT integration (Whisper/Deepgram/etc.)</li>
+                    <li><span class="int-change-tag remove">Remove</span> Audio format conversion / transcoding</li>
+                    <li><span class="int-change-tag add">Add</span> G.711 ulaw format config on session create</li>
+                    <li><span class="int-change-tag remove">Remove</span> Audio chunk buffering / assembly</li>
+                </ul>
+            </div>
+
+            <div class="integration-card">
+                <h4>
+                    <span class="int-badge critical">Critical</span>
+                    LLM Integration
+                </h4>
+                <p>Replace Claude/Bedrock REST calls with OpenAI Realtime WebSocket event protocol.</p>
+                <ul class="int-changes">
+                    <li><span class="int-change-tag remove">Remove</span> Bedrock client and Claude API calls</li>
+                    <li><span class="int-change-tag add">Add</span> OpenAI Realtime WebSocket connection mgmt</li>
+                    <li><span class="int-change-tag modify">Modify</span> System prompt format (minor syntax changes)</li>
+                    <li><span class="int-change-tag modify">Modify</span> Tool schemas (Claude &rarr; OpenAI format)</li>
+                    <li><span class="int-change-tag add">Add</span> Event-driven response handling</li>
+                </ul>
+            </div>
+
+            <div class="integration-card">
+                <h4>
+                    <span class="int-badge major">Major</span>
+                    Session Management
+                </h4>
+                <p>Shift from managing conversation context in your app to the API's server-side state model.</p>
+                <ul class="int-changes">
+                    <li><span class="int-change-tag modify">Modify</span> Session lifecycle (create via REST, use via WS)</li>
+                    <li><span class="int-change-tag add">Add</span> Ephemeral token generation for security</li>
+                    <li><span class="int-change-tag modify">Modify</span> Context management (use conversation.item events)</li>
+                    <li><span class="int-change-tag add">Add</span> Session config (voice, VAD, temp, max_tokens)</li>
+                </ul>
+            </div>
+
+            <div class="integration-card">
+                <h4>
+                    <span class="int-badge major">Major</span>
+                    Voice &amp; Persona
+                </h4>
+                <p>Replace ElevenLabs voice selection with GPT Realtime's 8 built-in voices. Voice cloning is not available.</p>
+                <ul class="int-changes">
+                    <li><span class="int-change-tag remove">Remove</span> ElevenLabs voice_id configuration</li>
+                    <li><span class="int-change-tag remove">Remove</span> Custom voice cloning / fine-tuning</li>
+                    <li><span class="int-change-tag add">Add</span> Voice selection from 8 built-in options</li>
+                    <li><span class="int-change-tag modify">Modify</span> Voice personality via system instructions</li>
+                </ul>
+            </div>
+
+            <div class="integration-card">
+                <h4>
+                    <span class="int-badge minor">Minor</span>
+                    Monitoring &amp; Logging
+                </h4>
+                <p>Adapt observability from multi-service traces to single-connection event logging.</p>
+                <ul class="int-changes">
+                    <li><span class="int-change-tag modify">Modify</span> Latency measurement (single hop now)</li>
+                    <li><span class="int-change-tag add">Add</span> OpenAI tracing config (workflow_name, group_id)</li>
+                    <li><span class="int-change-tag remove">Remove</span> Cross-service correlation IDs</li>
+                    <li><span class="int-change-tag modify">Modify</span> Cost tracking (token-based, not per-minute)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 4: Migration Plan ──────────────────────────────── -->
+    <div class="section" id="migration">
+        <div class="section-header">
+            <div class="section-num" style="background: var(--success-dim); color: var(--success);">4</div>
+            <h2>Migration Plan</h2>
+        </div>
+        <p class="section-desc">
+            A phased approach that allows incremental validation before cutting over production traffic. Each phase is independently testable and reversible.
+        </p>
+
+        <div class="timeline">
+            <!-- Phase 1 -->
+            <div class="timeline-step phase-1">
+                <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                <div class="step-card">
+                    <div class="step-phase">Phase 1 — Foundation</div>
+                    <h4>OpenAI Realtime API Integration</h4>
+                    <p>Stand up the core Realtime API connection and validate basic text+audio round-trips before touching telephony.</p>
+                    <ul class="step-details">
+                        <li>Create OpenAI project and provision API keys with Realtime API access</li>
+                        <li>Implement WebSocket connection manager using the OpenAI Python SDK (<code>client.realtime.connect()</code>)</li>
+                        <li>Port system prompts and personality instructions to the new session config format</li>
+                        <li>Convert tool/function schemas from Claude's format to OpenAI's function-calling schema</li>
+                        <li>Build event handler for the full event lifecycle: <code>session.created</code>, <code>response.audio.delta</code>, <code>response.done</code>, <code>error</code></li>
+                        <li>Validate with the browser-based prototype (see <code>realtime-voice/</code>) before proceeding</li>
+                    </ul>
+
+                    <div class="code-block">
+                        <div class="code-header">session_manager.py — Core session creation</div>
+                        <div class="code-body"><span class="kw">from</span> openai <span class="kw">import</span> AsyncOpenAI
+
+client = AsyncOpenAI()
+
+<span class="kw">async def</span> <span class="fn">create_voice_session</span>(voice=<span class="str">"ash"</span>, model=<span class="str">"gpt-4o-mini-realtime-preview"</span>):
+    <span class="cm">"""Create a Realtime API session optimized for telephony."""</span>
+    session = <span class="kw">await</span> client.beta.realtime.sessions.create(
+        model=model,
+        voice=voice,
+        modalities=[<span class="str">"text"</span>, <span class="str">"audio"</span>],
+        instructions=SYSTEM_PROMPT,
+        input_audio_format=<span class="str">"g711_ulaw"</span>,   <span class="cm"># Native telephony codec</span>
+        output_audio_format=<span class="str">"g711_ulaw"</span>,
+        turn_detection={
+            <span class="str">"type"</span>: <span class="str">"semantic_vad"</span>,
+            <span class="str">"eagerness"</span>: <span class="str">"high"</span>,
+        },
+        temperature=<span class="num">0.6</span>,
+        max_response_output_tokens=<span class="num">512</span>,
+    )
+    <span class="kw">return</span> session</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="timeline-step phase-2">
+                <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                <div class="step-card">
+                    <div class="step-phase">Phase 2 — SIP Telephony</div>
+                    <h4>Twilio SIP Trunk Configuration</h4>
+                    <p>Replace ConversationRelay with SIP trunking to route PSTN calls directly to the Realtime API.</p>
+                    <ul class="step-details">
+                        <li>Create a Twilio Elastic SIP Trunk in the Twilio console</li>
+                        <li>Configure the Origination URI to point to OpenAI's SIP endpoint</li>
+                        <li>Set up a webhook endpoint on your server that Twilio calls on inbound INVITE — this creates the Realtime session and returns SIP routing info</li>
+                        <li>Update the Twilio phone number to route to the SIP trunk instead of a TwiML app</li>
+                        <li>Configure G.711 u-law as the audio codec (no transcoding needed)</li>
+                        <li>Test with a staging phone number before touching production numbers</li>
+                    </ul>
+
+                    <div class="callout info">
+                        <div class="callout-icon">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        </div>
+                        <div><strong>SIP INVITE flow:</strong> Twilio receives inbound PSTN call &rarr; sends SIP INVITE to OpenAI's SIP endpoint &rarr; OpenAI connects the call audio to a Realtime API session. Your server handles session config via a webhook, not the audio stream itself.</div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">sip_webhook.py — Inbound call handler</div>
+                        <div class="code-body"><span class="kw">async def</span> <span class="fn">handle_inbound_call</span>(request):
+    <span class="cm">"""Webhook called by Twilio on inbound SIP INVITE.
+    Creates a Realtime session and returns connection config."""</span>
+    caller = request.json.get(<span class="str">"From"</span>)
+
+    <span class="cm"># Create session with caller-specific context</span>
+    session = <span class="kw">await</span> create_voice_session(
+        voice=<span class="str">"ash"</span>,
+        model=<span class="str">"gpt-4o-mini-realtime-preview"</span>,
+    )
+
+    <span class="cm"># Return session token for SIP bridge</span>
+    <span class="kw">return</span> {
+        <span class="str">"session_id"</span>: session.id,
+        <span class="str">"token"</span>: session.client_secret.value,
+        <span class="str">"model"</span>: <span class="str">"gpt-4o-mini-realtime-preview"</span>,
+    }</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3 -->
+            <div class="timeline-step phase-3">
+                <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                <div class="step-card">
+                    <div class="step-phase">Phase 3 — Decommission Legacy</div>
+                    <h4>Remove ElevenLabs, Bedrock, and ConversationRelay</h4>
+                    <p>After validating the new stack with live traffic, remove the legacy integration code and vendor dependencies.</p>
+                    <ul class="step-details">
+                        <li>Remove ElevenLabs SDK dependency, API key, and TTS streaming code</li>
+                        <li>Remove AWS Bedrock Claude client and associated IAM permissions</li>
+                        <li>Remove Twilio ConversationRelay WebSocket handler and TwiML generation</li>
+                        <li>Remove audio transcoding utilities (format conversion, resampling)</li>
+                        <li>Remove STT integration code (Whisper/Deepgram/etc.)</li>
+                        <li>Update environment variables: remove <code>ELEVENLABS_API_KEY</code>, <code>AWS_*</code> Bedrock vars</li>
+                        <li>Remove unused Python packages: <code>boto3</code>, <code>elevenlabs</code>, <code>anthropic</code> (if Bedrock-only)</li>
+                    </ul>
+
+                    <div class="callout warn">
+                        <div class="callout-icon">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        </div>
+                        <div><strong>Keep the legacy stack available behind a feature flag</strong> for at least 2 weeks after cutover. If GPT Realtime has an outage or quality regression, you need a fast rollback path.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 4 -->
+            <div class="timeline-step phase-4">
+                <div class="timeline-dot"><div class="timeline-dot-inner"></div></div>
+                <div class="step-card">
+                    <div class="step-phase">Phase 4 — Optimization</div>
+                    <h4>Tune, Monitor, and Extend</h4>
+                    <p>Once stable on the new stack, optimize latency, cost, and quality using Realtime-specific features.</p>
+                    <ul class="step-details">
+                        <li>Tune semantic VAD eagerness per use case (high for quick Q&A, low for dictation)</li>
+                        <li>Enable input audio noise reduction for noisy call environments</li>
+                        <li>Implement <code>max_response_output_tokens</code> caps to control cost and response length</li>
+                        <li>Set up OpenAI tracing with <code>workflow_name</code> and <code>group_id</code> for call analytics</li>
+                        <li>Evaluate gpt-4o-mini-realtime vs gpt-4o-realtime for cost/quality trade-offs</li>
+                        <li>Build cost dashboards based on token usage (audio tokens ~32-50 per second)</li>
+                        <li>Consider cached audio input tokens (50% discount) for repeated greetings/prompts</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 5: Cost Comparison ─────────────────────────────── -->
+    <div class="section" id="cost">
+        <div class="section-header">
+            <div class="section-num" style="background: var(--cyan-dim); color: var(--cyan);">5</div>
+            <h2>Cost Comparison</h2>
+        </div>
+        <p class="section-desc">
+            Estimated costs per 1-minute conversation (30 seconds user speech + 30 seconds assistant response). Actual costs vary by content density and token efficiency.
+        </p>
+
+        <div class="cost-grid">
+            <div class="cost-card">
+                <h4>
+                    <span style="color: #fca5a5;">Current Stack</span>
+                    <small style="color: var(--text-muted); font-weight: 400; font-size: 12px;">per 1-min call</small>
+                </h4>
+                <div class="cost-line">
+                    <span class="cost-name">Twilio ConversationRelay</span>
+                    <span class="cost-amount">$0.020</span>
+                </div>
+                <div class="cost-line">
+                    <span class="cost-name">Twilio voice minutes</span>
+                    <span class="cost-amount">$0.014</span>
+                </div>
+                <div class="cost-line">
+                    <span class="cost-name">ElevenLabs TTS (30s)</span>
+                    <span class="cost-amount">$0.030</span>
+                </div>
+                <div class="cost-line">
+                    <span class="cost-name">STT / Whisper API (30s)</span>
+                    <span class="cost-amount">$0.006</span>
+                </div>
+                <div class="cost-line">
+                    <span class="cost-name">Claude Sonnet (Bedrock)</span>
+                    <span class="cost-amount">$0.012</span>
+                </div>
+                <div class="cost-line total">
+                    <span class="cost-name">Estimated Total</span>
+                    <span class="cost-amount" style="color: #fca5a5;">~$0.082</span>
+                </div>
+            </div>
+
+            <div class="cost-card">
+                <h4>
+                    <span style="color: #86efac;">GPT Realtime Stack</span>
+                    <small style="color: var(--text-muted); font-weight: 400; font-size: 12px;">per 1-min call</small>
+                </h4>
+                <div class="cost-line">
+                    <span class="cost-name">Twilio SIP + voice</span>
+                    <span class="cost-amount">$0.014</span>
+                </div>
+                <div class="cost-line">
+                    <span class="cost-name">GPT-4o-mini Realtime audio in</span>
+                    <span class="cost-amount">$0.015</span>
+                </div>
+                <div class="cost-line">
+                    <span class="cost-name">GPT-4o-mini Realtime audio out</span>
+                    <span class="cost-amount">$0.030</span>
+                </div>
+                <div class="cost-line">
+                    <span class="cost-name">GPT-4o-mini Realtime text</span>
+                    <span class="cost-amount">$0.002</span>
+                </div>
+                <div class="cost-line" style="border-bottom: none;">
+                    <span class="cost-name" style="color: var(--text-muted); font-style: italic;">ElevenLabs TTS</span>
+                    <span class="cost-amount" style="color: var(--text-muted);">$0.000</span>
+                </div>
+                <div class="cost-line total">
+                    <span class="cost-name">Estimated Total</span>
+                    <span class="cost-amount" style="color: #86efac;">~$0.061</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="callout info">
+            <div class="callout-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <div>
+                <strong>Cost note:</strong> Using <code>gpt-4o-realtime</code> (the larger model) would increase audio costs by ~4x, bringing the total to ~$0.18/min. Start with <code>gpt-4o-mini-realtime</code> and upgrade only if quality requires it. Cached audio input tokens get a 50% discount for repeated system prompts.
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 6: Risks & Mitigations ─────────────────────────── -->
+    <div class="section" id="risks">
+        <div class="section-header">
+            <div class="section-num" style="background: var(--error-dim); color: var(--error);">6</div>
+            <h2>Risks &amp; Mitigations</h2>
+        </div>
+
+        <div class="risk-list">
+            <div class="risk-item">
+                <span class="risk-level high">High</span>
+                <div class="risk-content">
+                    <h5>Voice Quality Regression</h5>
+                    <p>GPT Realtime's 8 built-in voices may not match the quality, variety, or brand-specific tuning achievable with ElevenLabs voice cloning.</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Conduct blind A/B listening tests before migration. If a specific voice is brand-critical, consider keeping ElevenLabs for that use case while migrating the rest.</div>
+                </div>
+            </div>
+
+            <div class="risk-item">
+                <span class="risk-level high">High</span>
+                <div class="risk-content">
+                    <h5>LLM Quality Differences</h5>
+                    <p>GPT-4o Realtime may produce different quality responses than Claude for your specific use cases. Tool-calling behavior, instruction following, and safety filters differ between models.</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Run parallel evaluation on a test suite of real conversation transcripts. Compare response quality, tool-call accuracy, and edge-case handling before cutover.</div>
+                </div>
+            </div>
+
+            <div class="risk-item">
+                <span class="risk-level medium">Medium</span>
+                <div class="risk-content">
+                    <h5>Single Vendor Lock-in</h5>
+                    <p>Moving from a multi-vendor stack to all-OpenAI creates a single point of failure. An OpenAI outage would take down the entire voice pipeline.</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Keep the legacy stack deployable behind a feature flag for fast failover. Monitor OpenAI status page and set up automated fallback triggers.</div>
+                </div>
+            </div>
+
+            <div class="risk-item">
+                <span class="risk-level medium">Medium</span>
+                <div class="risk-content">
+                    <h5>SIP Configuration Complexity</h5>
+                    <p>SIP trunking is a lower-level telephony primitive than ConversationRelay. Misconfiguration can cause silent failures, one-way audio, or codec mismatches.</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Test on staging numbers first. Validate bidirectional audio with G.711 u-law. Set up monitoring for SIP error codes (4xx, 5xx) and RTP packet loss.</div>
+                </div>
+            </div>
+
+            <div class="risk-item">
+                <span class="risk-level medium">Medium</span>
+                <div class="risk-content">
+                    <h5>WebSocket Connection Stability</h5>
+                    <p>Long-running phone calls rely on a persistent WebSocket to OpenAI. Network issues or API-side disconnects mid-call would drop the conversation.</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Implement automatic reconnection with exponential backoff. Use <code>conversation.item.create</code> to restore context on reconnect. Set up heartbeat/ping monitoring.</div>
+                </div>
+            </div>
+
+            <div class="risk-item">
+                <span class="risk-level low">Low</span>
+                <div class="risk-content">
+                    <h5>Cost Unpredictability</h5>
+                    <p>Token-based pricing (vs. per-minute) makes costs harder to predict, especially for long or chatty conversations.</p>
+                    <div class="risk-mitigation"><strong>Mitigation:</strong> Set <code>max_response_output_tokens</code> to cap response length. Monitor token usage per call. Use gpt-4o-mini-realtime for cost-sensitive paths.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 7: Pre-Migration Checklist ─────────────────────── -->
+    <div class="section" id="checklist">
+        <div class="section-header">
+            <div class="section-num" style="background: var(--pink-dim); color: var(--pink);">7</div>
+            <h2>Pre-Migration Checklist</h2>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h4 style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Before Starting</h4>
+                <ul class="checklist">
+                    <li><span class="check-box"></span>OpenAI API key with Realtime API access provisioned</li>
+                    <li><span class="check-box"></span>Twilio account with Elastic SIP Trunking enabled</li>
+                    <li><span class="check-box"></span>Staging phone number allocated for testing</li>
+                    <li><span class="check-box"></span>Voice A/B test results reviewed and approved</li>
+                    <li><span class="check-box"></span>Tool/function schemas ported from Claude to OpenAI format</li>
+                    <li><span class="check-box"></span>System prompts adapted for GPT-4o behavior</li>
+                    <li><span class="check-box"></span>Cost projections validated against real token usage</li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="font-size: 14px; color: var(--text-secondary); margin-bottom: 12px;">Before Go-Live</h4>
+                <ul class="checklist">
+                    <li><span class="check-box"></span>End-to-end call test on staging (PSTN &rarr; SIP &rarr; Realtime)</li>
+                    <li><span class="check-box"></span>Latency measured and within target (&lt;500ms first audio)</li>
+                    <li><span class="check-box"></span>Tool calling validated for all critical functions</li>
+                    <li><span class="check-box"></span>Fallback to legacy stack tested and documented</li>
+                    <li><span class="check-box"></span>Monitoring dashboards configured (latency, errors, cost)</li>
+                    <li><span class="check-box"></span>On-call runbook updated with new architecture</li>
+                    <li><span class="check-box"></span>Legacy vendor contracts reviewed for cancellation terms</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Section 8: Key Code Differences ────────────────────────── -->
+    <div class="section" id="code">
+        <div class="section-header">
+            <div class="section-num" style="background: var(--accent-glow); color: var(--accent-light);">8</div>
+            <h2>Key Code Transformations</h2>
+        </div>
+        <p class="section-desc">
+            Side-by-side examples showing the most important code changes when migrating from the current stack to GPT Realtime.
+        </p>
+
+        <h4 style="font-size: 15px; margin-bottom: 12px;">Tool / Function Schema</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px;">
+            <div class="code-block" style="margin: 0;">
+                <div class="code-header">Claude / Bedrock (before)</div>
+                <div class="code-body">{
+  <span class="str">"name"</span>: <span class="str">"lookup_order"</span>,
+  <span class="str">"description"</span>: <span class="str">"Look up order status"</span>,
+  <span class="str">"input_schema"</span>: {
+    <span class="str">"type"</span>: <span class="str">"object"</span>,
+    <span class="str">"properties"</span>: {
+      <span class="str">"order_id"</span>: {
+        <span class="str">"type"</span>: <span class="str">"string"</span>
+      }
+    },
+    <span class="str">"required"</span>: [<span class="str">"order_id"</span>]
+  }
+}</div>
+            </div>
+            <div class="code-block" style="margin: 0;">
+                <div class="code-header">OpenAI Realtime (after)</div>
+                <div class="code-body">{
+  <span class="str">"type"</span>: <span class="str">"function"</span>,
+  <span class="str">"name"</span>: <span class="str">"lookup_order"</span>,
+  <span class="str">"description"</span>: <span class="str">"Look up order status"</span>,
+  <span class="str">"parameters"</span>: {
+    <span class="str">"type"</span>: <span class="str">"object"</span>,
+    <span class="str">"properties"</span>: {
+      <span class="str">"order_id"</span>: {
+        <span class="str">"type"</span>: <span class="str">"string"</span>
+      }
+    },
+    <span class="str">"required"</span>: [<span class="str">"order_id"</span>]
+  }
+}</div>
+            </div>
+        </div>
+
+        <h4 style="font-size: 15px; margin-bottom: 12px;">Handling a Tool Call Response</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px;">
+            <div class="code-block" style="margin: 0;">
+                <div class="code-header">Claude / Bedrock (before)</div>
+                <div class="code-body"><span class="cm"># Receive tool_use block in response</span>
+tool_use = response[<span class="str">"content"</span>][<span class="num">0</span>]
+result = execute_tool(
+    tool_use[<span class="str">"name"</span>],
+    tool_use[<span class="str">"input"</span>]
+)
+
+<span class="cm"># Send tool_result back</span>
+messages.append({
+    <span class="str">"role"</span>: <span class="str">"user"</span>,
+    <span class="str">"content"</span>: [{
+        <span class="str">"type"</span>: <span class="str">"tool_result"</span>,
+        <span class="str">"tool_use_id"</span>: tool_use[<span class="str">"id"</span>],
+        <span class="str">"content"</span>: json.dumps(result)
+    }]
+})</div>
+            </div>
+            <div class="code-block" style="margin: 0;">
+                <div class="code-header">OpenAI Realtime (after)</div>
+                <div class="code-body"><span class="cm"># Receive function_call event</span>
+<span class="kw">if</span> event.type == <span class="str">"response.function_call_arguments.done"</span>:
+    result = execute_tool(
+        event.name,
+        json.loads(event.arguments)
+    )
+
+    <span class="cm"># Send function output via WebSocket</span>
+    <span class="kw">await</span> conn.conversation.item.create(item={
+        <span class="str">"type"</span>: <span class="str">"function_call_output"</span>,
+        <span class="str">"call_id"</span>: event.call_id,
+        <span class="str">"output"</span>: json.dumps(result)
+    })
+    <span class="kw">await</span> conn.response.create()</div>
+            </div>
+        </div>
+
+        <div class="callout info">
+            <div class="callout-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <div><strong>Key difference:</strong> Claude uses <code>input_schema</code> for tool definitions; OpenAI uses <code>parameters</code>. Claude returns <code>tool_use</code> content blocks; OpenAI emits <code>response.function_call_arguments.done</code> events. The JSON schema for parameters is identical — only the wrapper changes.</div>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <p>Jarvis Voice Stack Migration Guide &mdash; Generated 2026-05-08 &mdash; OpenAI Realtime API + SIP Integration</p>
+</footer>
+
+</body>
+</html>
