@@ -1,0 +1,28 @@
+[project]
+name = "chief-of-staff-agent"
+version = "0.1.0"
+description = "Multi-step autonomous research agent that produces executive briefings using Claude Opus and Tavily web search."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+
+dependencies = [
+    "anthropic>=0.40.0",
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+    "tavily-python>=0.3.0",
+    "beautifulsoup4>=4.12.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+
+[project.scripts]
+chief-of-staff = "chief_of_staff_agent.main:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
