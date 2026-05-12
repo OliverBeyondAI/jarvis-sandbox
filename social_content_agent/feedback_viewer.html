@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Refinement Loop — Feedback Viewer</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface-2: #232735;
+    --surface-3: #2c3040;
+    --border: #363a4a;
+    --text: #e4e6f0;
+    --text-muted: #8b8fa4;
+    --text-dim: #5e6278;
+    --accent: #7c6aef;
+    --accent-light: #9b8df7;
+    --accent-bg: rgba(124,106,239,0.1);
+    --green: #34d399;
+    --green-bg: rgba(52,211,153,0.1);
+    --green-border: rgba(52,211,153,0.25);
+    --amber: #fbbf24;
+    --amber-bg: rgba(251,191,36,0.1);
+    --amber-border: rgba(251,191,36,0.25);
+    --red: #f87171;
+    --red-bg: rgba(248,113,113,0.1);
+    --blue: #60a5fa;
+    --blue-bg: rgba(96,165,250,0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding: 48px 32px;
+    background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+  }
+  .header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent-light), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .header .product-name {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .meta-card {
+    background: var(--surface-3);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    text-align: center;
+  }
+  .meta-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 4px; }
+  .meta-card .value { font-size: 1.5rem; font-weight: 700; color: var(--accent-light); }
+  .meta-card .value.green { color: var(--green); }
+  .meta-card .value.amber { color: var(--amber); }
+
+  /* Brand voice summary */
+  .brand-voice-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .voice-tag {
+    display: inline-block;
+    background: var(--accent-bg);
+    color: var(--accent-light);
+    border: 1px solid rgba(124,106,239,0.2);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  /* Nav tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+    overflow-x: auto;
+  }
+  .tab {
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent-light);
+    border-bottom-color: var(--accent);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Round panels */
+  .round-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .round-header h2 { font-size: 1.2rem; font-weight: 600; }
+  .round-stats { display: flex; gap: 16px; }
+  .round-stat {
+    font-size: 0.85rem;
+    padding: 4px 12px;
+    border-radius: 100px;
+  }
+  .round-stat.pass { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .round-stat.refine { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+
+  /* Post card */
+  .post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .post-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  .post-card-header .day-label {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .platform-badge {
+    background: var(--accent-bg);
+    color: var(--accent-light);
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid rgba(124,106,239,0.2);
+  }
+  .verdict-badge {
+    padding: 4px 14px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .verdict-badge.pass { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .verdict-badge.refine { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber-border); }
+
+  /* Score bar */
+  .scores {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .score-item { text-align: center; }
+  .score-item .score-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 6px; }
+  .score-ring {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 4px;
+    position: relative;
+  }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-ring .bg { stroke: var(--surface-3); }
+  .score-ring .fill { transition: stroke-dashoffset 0.6s ease; }
+  .score-ring .score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  /* Feedback details */
+  .feedback-body { padding: 20px; }
+  .feedback-section { margin-bottom: 16px; }
+  .feedback-section:last-child { margin-bottom: 0; }
+  .feedback-section h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .feedback-list { list-style: none; }
+  .feedback-list li {
+    padding: 6px 0;
+    padding-left: 16px;
+    position: relative;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .feedback-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .feedback-list.strengths li::before { background: var(--green); }
+  .feedback-list.issues li::before { background: var(--amber); }
+  .feedback-list.suggestions li::before { background: var(--blue); }
+
+  /* Diff view */
+  .diff-toggle {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  .diff-btn {
+    padding: 6px 16px;
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+  }
+  .diff-btn:hover { color: var(--text); }
+  .diff-btn.active { background: var(--accent-bg); color: var(--accent-light); border-color: rgba(124,106,239,0.3); }
+  .diff-panel { display: none; }
+  .diff-panel.active { display: block; }
+  .caption-block {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .caption-block .block-label {
+    display: inline-block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .caption-block.original { border-left: 3px solid var(--amber); }
+  .caption-block.refined { border-left: 3px solid var(--green); }
+
+  /* Final posts tab */
+  .final-post {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    padding: 24px;
+  }
+  .final-post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .final-post-header .day-num {
+    background: var(--accent);
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .final-post-header .info h3 { font-size: 1rem; font-weight: 600; }
+  .final-post-header .info .sub { font-size: 0.85rem; color: var(--text-muted); }
+  .final-caption {
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+  }
+  .final-image-desc {
+    background: var(--surface-3);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+  }
+  .final-image-desc .img-label {
+    display: block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .hashtags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .hashtag {
+    background: var(--blue-bg);
+    color: var(--blue);
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+  .post-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    margin-top: 8px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+  }
+  .empty-state p { font-size: 1.1rem; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container { padding: 16px; }
+    .header { padding: 32px 20px; }
+    .header h1 { font-size: 1.5rem; }
+    .meta-grid { grid-template-columns: repeat(2, 1fr); }
+    .scores { grid-template-columns: repeat(2, 1fr); }
+    .round-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+    .post-card-header { flex-wrap: wrap; gap: 8px; }
+    .diff-toggle { flex-wrap: wrap; }
+  }
+  @media (max-width: 480px) {
+    .meta-grid { grid-template-columns: 1fr; }
+    .tabs { flex-direction: column; border-bottom: none; gap: 2px; }
+    .tab { border-bottom: none; border-left: 2px solid transparent; text-align: left; }
+    .tab.active { border-left-color: var(--accent); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="app">
+  <div class="empty-state">
+    <p>Loading feedback data...</p>
+  </div>
+</div>
+
+<script>
+const DATA = __REFINEMENT_DATA_PLACEHOLDER__;
+
+function scoreColor(score) {
+  if (score >= 8) return 'var(--green)';
+  if (score >= 6) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function renderScoreRing(score, label) {
+  const r = 20, c = 2 * Math.PI * r;
+  const pct = score / 10;
+  const offset = c * (1 - pct);
+  const color = scoreColor(score);
+  return `
+    <div class="score-item">
+      <div class="score-ring">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="bg" cx="26" cy="26" r="${r}" fill="none" stroke-width="4"/>
+          <circle class="fill" cx="26" cy="26" r="${r}" fill="none" stroke="${color}" stroke-width="4"
+            stroke-dasharray="${c}" stroke-dashoffset="${offset}" stroke-linecap="round"/>
+        </svg>
+        <span class="score-text" style="color:${color}">${score}</span>
+      </div>
+      <div class="score-label">${label}</div>
+    </div>`;
+}
+
+function renderFeedbackList(items, cls) {
+  if (!items || !items.length) return '';
+  return `<ul class="feedback-list ${cls}">${items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function renderPostCard(fb, origPost, refinedPost) {
+  const hasRefined = refinedPost && refinedPost.caption;
+  const diffId = `diff-${fb.day}-${Math.random().toString(36).slice(2,6)}`;
+
+  let diffHTML = '';
+  if (hasRefined) {
+    diffHTML = `
+      <div class="feedback-section">
+        <h4>Caption Comparison</h4>
+        <div class="diff-toggle">
+          <button class="diff-btn active" onclick="showDiff('${diffId}','original')">Original</button>
+          <button class="diff-btn" onclick="showDiff('${diffId}','refined')">Refined</button>
+        </div>
+        <div id="${diffId}-original" class="diff-panel active">
+          <div class="caption-block original">
+            <span class="block-label">Original</span><br>${esc(origPost.caption)}</div>
+        </div>
+        <div id="${diffId}-refined" class="diff-panel">
+          <div class="caption-block refined">
+            <span class="block-label">Refined</span><br>${esc(refinedPost.caption)}</div>
+        </div>
+      </div>`;
+  }
+
+  let issuesHTML = '';
+  const allIssues = [...(fb.brand_voice_issues||[]), ...(fb.engagement_issues||[])];
+  if (allIssues.length) {
+    issuesHTML = `<div class="feedback-section"><h4>Issues Found</h4>${renderFeedbackList(allIssues, 'issues')}</div>`;
+  }
+
+  return `
+    <div class="post-card">
+      <div class="post-card-header">
+        <span class="day-label">Day ${fb.day} — ${origPost ? origPost.day_label : ''}</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="platform-badge">${esc(fb.platform)}</span>
+          <span class="verdict-badge ${fb.verdict}">${fb.verdict === 'pass' ? 'Passed' : 'Refine'}</span>
+        </div>
+      </div>
+      <div class="scores">
+        ${renderScoreRing(fb.scores.brand_voice, 'Brand Voice')}
+        ${renderScoreRing(fb.scores.engagement, 'Engagement')}
+        ${renderScoreRing(fb.scores.clarity, 'Clarity')}
+        ${renderScoreRing(fb.scores.overall, 'Overall')}
+      </div>
+      <div class="feedback-body">
+        ${fb.strengths && fb.strengths.length ? `<div class="feedback-section"><h4>Strengths</h4>${renderFeedbackList(fb.strengths, 'strengths')}</div>` : ''}
+        ${issuesHTML}
+        ${fb.suggestions && fb.suggestions.length ? `<div class="feedback-section"><h4>Suggestions</h4>${renderFeedbackList(fb.suggestions, 'suggestions')}</div>` : ''}
+        ${diffHTML}
+      </div>
+    </div>`;
+}
+
+function renderFinalPost(post) {
+  return `
+    <div class="final-post">
+      <div class="final-post-header">
+        <div class="day-num">${post.day}</div>
+        <div class="info">
+          <h3>${esc(post.day_label)} — ${esc(post.platform)}</h3>
+          <div class="sub">${esc(post.theme)}</div>
+        </div>
+      </div>
+      <div class="final-caption">${esc(post.caption)}</div>
+      <div class="final-image-desc">
+        <span class="img-label">Suggested Image</span>
+        ${esc(post.image_description)}
+      </div>
+      ${post.hashtags && post.hashtags.length ? `<div class="hashtags">${post.hashtags.map(h => `<span class="hashtag">${esc(h)}</span>`).join('')}</div>` : ''}
+      <div class="post-meta">
+        ${post.best_time_to_post ? `<span>Best time: ${esc(post.best_time_to_post)}</span>` : ''}
+        ${post.engagement_hook ? `<span>Hook: ${esc(post.engagement_hook)}</span>` : ''}
+      </div>
+    </div>`;
+}
+
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelector(`[data-tab="${id}"]`).classList.add('active');
+}
+
+function showDiff(id, which) {
+  const parent = document.getElementById(`${id}-original`).parentElement;
+  parent.querySelectorAll('.diff-panel').forEach(p => p.classList.remove('active'));
+  parent.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`${id}-${which}`).classList.add('active');
+  parent.querySelectorAll('.diff-btn').forEach(b => {
+    if (b.textContent.toLowerCase() === which) b.classList.add('active');
+  });
+}
+
+function render() {
+  const d = DATA;
+  const app = document.getElementById('app');
+
+  // Calculate average final scores from last round
+  const lastRound = d.rounds[d.rounds.length - 1];
+  const avgScore = lastRound ? (lastRound.feedback.reduce((s,f) => s + f.scores.overall, 0) / lastRound.feedback.length).toFixed(1) : '-';
+
+  // Voice tags
+  const voiceTags = [];
+  if (d.brand_voice.tone) voiceTags.push(d.brand_voice.tone.split(',')[0].trim());
+  if (d.brand_voice.emoji_usage) voiceTags.push(`Emoji: ${d.brand_voice.emoji_usage}`);
+  if (d.brand_voice.hashtag_style) voiceTags.push(`Hashtags: ${d.brand_voice.hashtag_style}`);
+  (d.brand_voice.do_use || []).slice(0, 3).forEach(u => voiceTags.push(u));
+
+  let html = `
+    <div class="header">
+      <h1>Content Refinement Loop</h1>
+      <div class="product-name">${esc(d.product.name)}</div>
+      <div class="meta-grid">
+        <div class="meta-card">
+          <div class="label">Rounds</div>
+          <div class="value">${d.total_rounds}</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Posts Refined</div>
+          <div class="value amber">${d.total_refinements}</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Final Avg Score</div>
+          <div class="value green">${avgScore}</div>
+        </div>
+        <div class="meta-card">
+          <div class="label">Tokens Used</div>
+          <div class="value">${((d.token_usage.input_tokens + d.token_usage.output_tokens) / 1000).toFixed(1)}k</div>
+        </div>
+      </div>
+      <div class="brand-voice-bar">
+        ${voiceTags.map(t => `<span class="voice-tag">${esc(t)}</span>`).join('')}
+      </div>
+    </div>`;
+
+  // Tabs
+  html += '<div class="tabs">';
+  d.rounds.forEach((r, i) => {
+    html += `<button class="tab${i === 0 ? ' active' : ''}" data-tab="round-${r.round_number}" onclick="showTab('round-${r.round_number}')">Round ${r.round_number}</button>`;
+  });
+  html += `<button class="tab" data-tab="final" onclick="showTab('final')">Final Posts</button>`;
+  html += '</div>';
+
+  // Round panels
+  d.rounds.forEach((r, i) => {
+    html += `<div id="round-${r.round_number}" class="tab-panel${i === 0 ? ' active' : ''}">`;
+    html += `
+      <div class="round-header">
+        <h2>Round ${r.round_number} Evaluation</h2>
+        <div class="round-stats">
+          <span class="round-stat pass">${r.posts_passed} passed</span>
+          <span class="round-stat refine">${r.posts_refined} refined</span>
+        </div>
+      </div>`;
+
+    const origMap = {};
+    r.original_posts.forEach(p => origMap[p.day] = p);
+    const refMap = {};
+    r.refined_posts.forEach(p => refMap[p.day] = p);
+
+    r.feedback.sort((a, b) => a.day - b.day).forEach(fb => {
+      html += renderPostCard(fb, origMap[fb.day], refMap[fb.day]);
+    });
+    html += '</div>';
+  });
+
+  // Final posts panel
+  html += '<div id="final" class="tab-panel">';
+  html += '<div class="round-header"><h2>Final Polished Posts</h2></div>';
+  (d.final_posts || []).forEach(p => {
+    html += renderFinalPost(p);
+  });
+  html += '</div>';
+
+  app.innerHTML = html;
+}
+
+render();
+</script>
+</body>
+</html>

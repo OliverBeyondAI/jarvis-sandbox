@@ -1,0 +1,15 @@
+[project]
+name = "xena-marketing-agent"
+version = "0.1.0"
+description = "Agentic AI marketing content generator using Claude Opus 4.7 via the Anthropic SDK"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.97.0",
+    "pydantic>=2.0",
+    "tavily-python>=0.5.0",
+    "httpx>=0.27.0",
+    "beautifulsoup4>=4.12.0",
+]
+
+[project.scripts]
+xena-marketing = "xena_marketing_agent.main:main"

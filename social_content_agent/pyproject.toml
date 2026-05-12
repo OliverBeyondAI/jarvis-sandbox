@@ -1,0 +1,11 @@
+[project]
+name = "social-content-agent"
+version = "0.1.0"
+description = "Agentic AI social media content generator using Claude"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.97.0",
+]
+
+[project.scripts]
+social-content = "social_content_agent.main:main"
