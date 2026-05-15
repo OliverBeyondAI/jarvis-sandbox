@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Xena Campaign Viewer</title>
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface-2: #1a1a26;
+    --border: #2a2a3a;
+    --border-hover: #3a3a50;
+    --text: #e8e8f0;
+    --text-muted: #8888a0;
+    --accent: #6366f1;
+    --accent-light: #818cf8;
+    --accent-bg: rgba(99,102,241,0.08);
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.08);
+    --amber: #f59e0b;
+    --amber-bg: rgba(245,158,11,0.08);
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.08);
+    --rose: #f43f5e;
+    --rose-bg: rgba(244,63,94,0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── Header ─────────────────────────────────────── */
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16162a 50%, #0f0f1a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -20%;
+    width: 60%;
+    height: 200%;
+    background: radial-gradient(ellipse, rgba(99,102,241,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+  }
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-light);
+    background: var(--accent-bg);
+    border: 1px solid rgba(99,102,241,0.2);
+    padding: 4px 12px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+  }
+  .header-badge svg { width: 14px; height: 14px; }
+  .header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.25rem;
+  }
+  .header-sub {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+
+  /* ── Stats Bar ──────────────────────────────────── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-width: 1200px;
+    margin: -1.5rem auto 0;
+    position: relative;
+    z-index: 2;
+    box-shadow: var(--shadow);
+  }
+  .stat {
+    background: var(--surface);
+    padding: 1rem 1.25rem;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent-light);
+  }
+  .stat-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ── Layout ─────────────────────────────────────── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  /* ── Section Cards ──────────────────────────────── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .section:hover { border-color: var(--border-hover); }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .section-header:hover { background: rgba(255,255,255,0.015); }
+  .section-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .section-icon svg { width: 16px; height: 16px; }
+  .section-icon.purple { background: var(--accent-bg); color: var(--accent-light); }
+  .section-icon.green { background: var(--green-bg); color: var(--green); }
+  .section-icon.blue { background: var(--blue-bg); color: var(--blue); }
+  .section-icon.amber { background: var(--amber-bg); color: var(--amber); }
+  .section-icon.rose { background: var(--rose-bg); color: var(--rose); }
+  .section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    flex: 1;
+  }
+  .section-count {
+    font-size: 0.75rem;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: 100px;
+  }
+  .section-toggle {
+    color: var(--text-muted);
+    transition: transform 0.2s;
+    font-size: 0.8rem;
+  }
+  .section.collapsed .section-toggle { transform: rotate(-90deg); }
+  .section-body {
+    padding: 1.25rem 1.5rem;
+  }
+  .section.collapsed .section-body { display: none; }
+
+  /* ── Workflow Steps ─────────────────────────────── */
+  .workflow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .workflow-step {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    position: relative;
+  }
+  .workflow-step-num {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-light);
+    margin-bottom: 0.5rem;
+  }
+  .workflow-step-title {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+  .workflow-step-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .workflow-step .check {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .workflow-step .check.done { background: var(--green-bg); color: var(--green); }
+  .workflow-step .check.pending { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+  .workflow-step .check svg { width: 12px; height: 12px; }
+
+  /* ── Tool Calls Timeline ────────────────────────── */
+  .timeline {
+    position: relative;
+    padding-left: 28px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 4px;
+    bottom: 4px;
+    width: 1px;
+    background: var(--border);
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 12px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: var(--bg);
+  }
+  .timeline-tool {
+    font-family: var(--mono);
+    font-weight: 600;
+    color: var(--accent-light);
+    font-size: 0.8rem;
+  }
+  .timeline-params {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-top: 2px;
+    word-break: break-all;
+  }
+
+  /* ── Insights ───────────────────────────────────── */
+  .insight-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.75rem;
+  }
+  .insight-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+  }
+  .insight-type {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+  .insight-type.market_trend { color: var(--blue); }
+  .insight-type.competitor_intel { color: var(--rose); }
+  .insight-type.audience_insight { color: var(--green); }
+  .insight-type.messaging_opportunity { color: var(--amber); }
+  .insight-type.positioning_gap { color: var(--accent-light); }
+  .insight-headline {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
+  }
+  .insight-detail {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* ── Content Pieces ─────────────────────────────── */
+  .content-piece {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .content-channel {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-light);
+    background: var(--accent-bg);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+  .content-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+  }
+  .content-cta {
+    font-size: 0.8rem;
+    color: var(--green);
+    margin-top: 0.25rem;
+  }
+
+  /* ── Images ─────────────────────────────────────── */
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .image-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .image-preview {
+    height: 180px;
+    background: linear-gradient(135deg, var(--accent-bg), var(--blue-bg));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .image-preview-text {
+    text-align: center;
+    padding: 1rem;
+  }
+  .image-preview-headline {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .image-preview-tagline {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .image-platform {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: rgba(0,0,0,0.5);
+    color: var(--text);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .image-meta {
+    padding: 1rem;
+  }
+  .image-concept {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .image-path {
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    word-break: break-all;
+    opacity: 0.7;
+  }
+
+  /* ── Campaign Text ──────────────────────────────── */
+  .campaign-text {
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    font-family: var(--font);
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+  .campaign-text::-webkit-scrollbar { width: 6px; }
+  .campaign-text::-webkit-scrollbar-track { background: transparent; }
+  .campaign-text::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── Empty State ────────────────────────────────── */
+  .empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* ── Footer ─────────────────────────────────────── */
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+  .footer a { color: var(--accent-light); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ── Responsive ─────────────────────────────────── */
+  @media (max-width: 768px) {
+    .header { padding: 1.5rem 1rem; }
+    .header h1 { font-size: 1.3rem; }
+    .container { padding: 1rem; }
+    .stats-bar { grid-template-columns: repeat(3, 1fr); margin-top: -1rem; }
+    .workflow { grid-template-columns: 1fr; }
+    .insight-grid { grid-template-columns: 1fr; }
+    .image-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      Xena Marketing Agent
+    </div>
+    <h1 id="campaign-title">Campaign Viewer</h1>
+    <div class="header-sub" id="campaign-sub">Loading campaign data...</div>
+  </div>
+</div>
+
+<!-- Stats Bar -->
+<div class="stats-bar" id="stats-bar">
+  <div class="stat"><div class="stat-value" id="stat-searches">-</div><div class="stat-label">Searches</div></div>
+  <div class="stat"><div class="stat-value" id="stat-pages">-</div><div class="stat-label">Pages Read</div></div>
+  <div class="stat"><div class="stat-value" id="stat-analyses">-</div><div class="stat-label">Analyses</div></div>
+  <div class="stat"><div class="stat-value" id="stat-content">-</div><div class="stat-label">Content</div></div>
+  <div class="stat"><div class="stat-value" id="stat-images">-</div><div class="stat-label">Images</div></div>
+  <div class="stat"><div class="stat-value" id="stat-duration">-</div><div class="stat-label">Duration</div></div>
+  <div class="stat"><div class="stat-value" id="stat-tokens">-</div><div class="stat-label">Tokens</div></div>
+</div>
+
+<div class="container">
+
+  <!-- Workflow Pipeline -->
+  <div class="section" id="section-workflow">
+    <div class="section-header" onclick="toggleSection('section-workflow')">
+      <div class="section-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <div class="section-title">Workflow Pipeline</div>
+      <div class="section-toggle">&#9660;</div>
+    </div>
+    <div class="section-body">
+      <div class="workflow" id="workflow-steps"></div>
+    </div>
+  </div>
+
+  <!-- MCP Tools Discovered -->
+  <div class="section" id="section-tools">
+    <div class="section-header" onclick="toggleSection('section-tools')">
+      <div class="section-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <div class="section-title">MCP Tools Discovered</div>
+      <div class="section-count" id="tools-count">0</div>
+      <div class="section-toggle">&#9660;</div>
+    </div>
+    <div class="section-body" id="tools-body"></div>
+  </div>
+
+  <!-- Tool Calls Timeline -->
+  <div class="section" id="section-timeline">
+    <div class="section-header" onclick="toggleSection('section-timeline')">
+      <div class="section-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="section-title">Tool Calls Timeline</div>
+      <div class="section-count" id="timeline-count">0</div>
+      <div class="section-toggle">&#9660;</div>
+    </div>
+    <div class="section-body">
+      <div class="timeline" id="timeline-body"></div>
+    </div>
+  </div>
+
+  <!-- Research Insights -->
+  <div class="section" id="section-insights">
+    <div class="section-header" onclick="toggleSection('section-insights')">
+      <div class="section-icon amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="section-title">Research Insights</div>
+      <div class="section-count" id="insights-count">0</div>
+      <div class="section-toggle">&#9660;</div>
+    </div>
+    <div class="section-body">
+      <div class="insight-grid" id="insights-body"></div>
+    </div>
+  </div>
+
+  <!-- Content Pieces -->
+  <div class="section" id="section-content">
+    <div class="section-header" onclick="toggleSection('section-content')">
+      <div class="section-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+      <div class="section-title">Content Pieces</div>
+      <div class="section-count" id="content-count">0</div>
+      <div class="section-toggle">&#9660;</div>
+    </div>
+    <div class="section-body" id="content-body"></div>
+  </div>
+
+  <!-- Generated Images -->
+  <div class="section" id="section-images">
+    <div class="section-header" onclick="toggleSection('section-images')">
+      <div class="section-icon rose">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <div class="section-title">Generated Images</div>
+      <div class="section-count" id="images-count">0</div>
+      <div class="section-toggle">&#9660;</div>
+    </div>
+    <div class="section-body">
+      <div class="image-grid" id="images-body"></div>
+    </div>
+  </div>
+
+  <!-- Campaign Output -->
+  <div class="section" id="section-output">
+    <div class="section-header" onclick="toggleSection('section-output')">
+      <div class="section-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="section-title">Campaign Output</div>
+      <div class="section-toggle">&#9660;</div>
+    </div>
+    <div class="section-body">
+      <div class="campaign-text" id="campaign-output"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Powered by <a href="#">MCP Xena Marketing Agent</a> &mdash;
+  Claude Agent SDK + MCP + Tavily + OpenAI GPT Image 1
+</div>
+
+<script>
+// ── Campaign Data (injected by workflow runner) ──
+const DATA = /* __CAMPAIGN_DATA__ */ null;
+
+// ── Helpers ──
+function $(id) { return document.getElementById(id); }
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+function formatNum(n) {
+  return typeof n === 'number' ? n.toLocaleString() : '-';
+}
+
+// ── Render ──
+function render(data) {
+  if (!data) {
+    $('campaign-title').textContent = 'No Campaign Data';
+    $('campaign-sub').textContent = 'Load a campaign JSON file or run the workflow with --html';
+    return;
+  }
+
+  // Header
+  $('campaign-title').textContent = (data.product_name || 'Campaign') + ' Marketing Campaign';
+  const parts = [];
+  if (data.product_tagline) parts.push(data.product_tagline);
+  if (data.brand_voice) parts.push('Voice: ' + data.brand_voice);
+  if (data.timestamp) {
+    const d = new Date(data.timestamp);
+    parts.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }));
+  }
+  $('campaign-sub').textContent = parts.join('  \u2022  ');
+
+  // Stats
+  $('stat-searches').textContent = data.search_count || 0;
+  $('stat-pages').textContent = data.fetch_count || 0;
+  $('stat-analyses').textContent = data.analyze_count || 0;
+  $('stat-content').textContent = data.draft_count || 0;
+  $('stat-images').textContent = data.image_count || 0;
+  $('stat-duration').textContent = data.duration_seconds ? data.duration_seconds + 's' : '-';
+  const totalTokens = (data.input_tokens || 0) + (data.output_tokens || 0);
+  $('stat-tokens').textContent = totalTokens > 1000 ? Math.round(totalTokens / 1000) + 'K' : totalTokens;
+
+  // Workflow pipeline
+  const steps = [
+    { num: '01', title: 'MCP Discovery', desc: 'Connect to tool server and discover available tools', done: (data.mcp_tools_discovered || []).length > 0 },
+    { num: '02', title: 'Market Research', desc: 'Web search for trends, competitors, audience insights', done: (data.search_count || 0) > 0 },
+    { num: '03', title: 'Deep Analysis', desc: 'Fetch competitor pages and analyze positioning', done: (data.fetch_count || 0) > 0 },
+    { num: '04', title: 'Content Creation', desc: 'Generate copy for each marketing channel', done: (data.draft_count || 0) > 0 },
+    { num: '05', title: 'Image Generation', desc: 'Create visuals with text overlay and branding', done: (data.image_count || 0) > 0 },
+    { num: '06', title: 'Campaign Package', desc: 'Compile and save the complete campaign document', done: !!data.campaign_path },
+  ];
+  $('workflow-steps').innerHTML = steps.map(s => `
+    <div class="workflow-step">
+      <div class="check ${s.done ? 'done' : 'pending'}">
+        ${s.done
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/></svg>'}
+      </div>
+      <div class="workflow-step-num">Step ${s.num}</div>
+      <div class="workflow-step-title">${esc(s.title)}</div>
+      <div class="workflow-step-desc">${esc(s.desc)}</div>
+    </div>
+  `).join('');
+
+  // MCP tools
+  const tools = data.mcp_tools_discovered || [];
+  $('tools-count').textContent = tools.length;
+  if (tools.length) {
+    $('tools-body').innerHTML = tools.map(t => `
+      <span style="display:inline-block;font-family:var(--mono);font-size:0.8rem;background:var(--surface-2);border:1px solid var(--border);padding:4px 10px;border-radius:6px;margin:0 6px 6px 0;">${esc(t)}</span>
+    `).join('');
+  } else {
+    $('tools-body').innerHTML = '<div class="empty">No MCP tools discovered</div>';
+  }
+
+  // Timeline
+  const calls = data.tool_calls || [];
+  $('timeline-count').textContent = calls.length;
+  if (calls.length) {
+    $('timeline-body').innerHTML = calls.map(c => `
+      <div class="timeline-item">
+        <span class="timeline-tool">${esc(c.name)}</span>
+        <div class="timeline-params">${esc((c.input_keys || []).join(', '))}</div>
+      </div>
+    `).join('');
+  } else {
+    $('timeline-body').innerHTML = '<div class="empty">No tool calls recorded</div>';
+  }
+
+  // Insights
+  const insights = data.insights || [];
+  // Flatten nested insight arrays
+  const flatInsights = [];
+  for (const item of insights) {
+    if (Array.isArray(item)) {
+      flatInsights.push(...item);
+    } else {
+      flatInsights.push(item);
+    }
+  }
+  $('insights-count').textContent = flatInsights.length;
+  if (flatInsights.length) {
+    $('insights-body').innerHTML = flatInsights.map(i => `
+      <div class="insight-card">
+        <div class="insight-type ${esc(i.type || 'market_trend')}">${esc((i.type || 'market_trend').replace(/_/g, ' '))}</div>
+        <div class="insight-headline">${esc(i.headline || '')}</div>
+        ${i.detail ? `<div class="insight-detail">${esc(i.detail)}</div>` : ''}
+      </div>
+    `).join('');
+  } else {
+    $('insights-body').innerHTML = '<div class="empty">No insights recorded</div>';
+  }
+
+  // Content
+  const content = data.content_pieces || [];
+  $('content-count').textContent = content.length;
+  if (content.length) {
+    $('content-body').innerHTML = content.map(c => `
+      <div class="content-piece">
+        <div class="content-channel">${esc(c.channel || '')}</div>
+        <div class="content-title">${esc(c.title || 'Untitled')}</div>
+        ${c.cta ? `<div class="content-cta">CTA: ${esc(c.cta)}</div>` : ''}
+      </div>
+    `).join('');
+  } else {
+    $('content-body').innerHTML = '<div class="empty">No content pieces drafted</div>';
+  }
+
+  // Images
+  const images = data.images_generated || [];
+  $('images-count').textContent = images.length;
+  if (images.length) {
+    $('images-body').innerHTML = images.map(img => `
+      <div class="image-card">
+        <div class="image-preview">
+          ${img.platform_label ? `<div class="image-platform">${esc(img.platform_label)}</div>` : ''}
+          <div class="image-preview-text">
+            <div class="image-preview-headline">${esc(img.headline || 'Marketing Image')}</div>
+            ${img.concept ? `<div class="image-preview-tagline">${esc(img.concept.substring(0, 60))}${img.concept.length > 60 ? '...' : ''}</div>` : ''}
+          </div>
+        </div>
+        <div class="image-meta">
+          ${img.concept ? `<div class="image-concept">${esc(img.concept)}</div>` : ''}
+          ${img.file_path ? `<div class="image-path">${esc(img.file_path)}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } else {
+    $('images-body').innerHTML = '<div class="empty">No images generated</div>';
+  }
+
+  // Campaign output text
+  if (data.text) {
+    $('campaign-output').textContent = data.text;
+  } else {
+    $('campaign-output').innerHTML = '<div class="empty">No campaign text output</div>';
+  }
+}
+
+// ── File drop / load support ──
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const json = JSON.parse(e.target.result);
+      render(json);
+    } catch(err) {
+      alert('Invalid JSON file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.addEventListener('dragover', e => { e.preventDefault(); });
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+
+// ── Init ──
+if (DATA) {
+  render(DATA);
+} else {
+  // Check for query param ?data=url
+  const params = new URLSearchParams(window.location.search);
+  const dataUrl = params.get('data');
+  if (dataUrl) {
+    fetch(dataUrl)
+      .then(r => r.json())
+      .then(render)
+      .catch(() => render(null));
+  } else {
+    // Show empty state with drag-and-drop hint
+    $('campaign-title').textContent = 'Xena Campaign Viewer';
+    $('campaign-sub').textContent = 'Drag and drop a workflow_result.json file here, or run the workflow with --html';
+    render(null);
+  }
+}
+</script>
+</body>
+</html>
