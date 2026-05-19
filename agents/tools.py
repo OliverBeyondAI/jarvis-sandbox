@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """
-MCP Tool Integration — Tavily Web Search and URL Content Fetching
+MCP Tool Integration — Tavily Web Search, URL Fetching, and File I/O.
 
 Defines tools in MCP-compatible format with schemas and async implementations
 that can be wired into the Claude Agent SDK managed-agents loop.
-
-Reuses proven patterns from research_summarizer/tools.py.
 """
 
 from __future__ import annotations
@@ -13,9 +11,17 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+from pathlib import Path
 from typing import Any
 
 import httpx
+
+
+# ---------------------------------------------------------------------------
+# File I/O Configuration
+# ---------------------------------------------------------------------------
+
+DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 
 # ---------------------------------------------------------------------------
@@ -67,8 +73,55 @@ TAVILY_SEARCH_TOOL: dict[str, Any] = {
     },
 }
 
+READ_FILE_TOOL: dict[str, Any] = {
+    "name": "read_file",
+    "type": "custom",
+    "description": (
+        "Read the contents of a file from the local filesystem. "
+        "Use this to load brand guides, reference materials, or any text file."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "path": {
+                "type": "string",
+                "description": "Absolute or relative path to the file to read.",
+            },
+        },
+        "required": ["path"],
+    },
+}
+
+WRITE_FILE_TOOL: dict[str, Any] = {
+    "name": "write_file",
+    "type": "custom",
+    "description": (
+        "Write content to a file on the local filesystem. "
+        "Creates parent directories if they don't exist."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "path": {
+                "type": "string",
+                "description": "Path where the file should be written.",
+            },
+            "content": {
+                "type": "string",
+                "description": "The content to write to the file.",
+            },
+        },
+        "required": ["path", "content"],
+    },
+}
+
 # All tools available to agents
-ALL_TOOLS: list[dict[str, Any]] = [FETCH_URL_TOOL, TAVILY_SEARCH_TOOL]
+ALL_TOOLS: list[dict[str, Any]] = [
+    FETCH_URL_TOOL,
+    TAVILY_SEARCH_TOOL,
+    READ_FILE_TOOL,
+    WRITE_FILE_TOOL,
+]
 
 
 # ---------------------------------------------------------------------------
@@ -165,6 +218,45 @@ async def tavily_search(query: str, max_results: int = 5) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# File I/O Implementations
+# ---------------------------------------------------------------------------
+
+def read_file(path: str) -> dict[str, Any]:
+    """Read a file from the filesystem."""
+    try:
+        file_path = Path(path)
+        if not file_path.is_absolute():
+            file_path = DATA_DIR / file_path
+        content = file_path.read_text(encoding="utf-8")
+        return {
+            "path": str(file_path),
+            "content": content,
+            "size": len(content),
+        }
+    except FileNotFoundError:
+        return {"path": path, "error": f"File not found: {path}"}
+    except Exception as e:
+        return {"path": path, "error": f"{type(e).__name__}: {e}"}
+
+
+def write_file(path: str, content: str) -> dict[str, Any]:
+    """Write content to a file on the filesystem."""
+    try:
+        file_path = Path(path)
+        if not file_path.is_absolute():
+            file_path = DATA_DIR / file_path
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_text(content, encoding="utf-8")
+        return {
+            "path": str(file_path),
+            "size": len(content),
+            "status": "written",
+        }
+    except Exception as e:
+        return {"path": path, "error": f"{type(e).__name__}: {e}"}
+
+
+# ---------------------------------------------------------------------------
 # Tool Dispatcher
 # ---------------------------------------------------------------------------
 
@@ -180,6 +272,10 @@ async def execute_tool(name: str, input_dict: dict[str, Any]) -> str:
             result = await fetch_url(**input_dict)
         elif name == "tavily_search":
             result = await tavily_search(**input_dict)
+        elif name == "read_file":
+            result = read_file(**input_dict)
+        elif name == "write_file":
+            result = write_file(**input_dict)
         else:
             result = {"error": f"Unknown tool: {name}"}
         return json.dumps(result, default=str)

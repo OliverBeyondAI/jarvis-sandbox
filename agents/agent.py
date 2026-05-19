@@ -26,16 +26,18 @@ from .tools import ALL_TOOLS, execute_tool
 # Constants
 # ---------------------------------------------------------------------------
 
-MODEL = "claude-opus-4-7-20250501"
+MODEL = "claude-sonnet-4-6-20250514"  # Valid model; upgrade to claude-opus-4-6-20250501 if needed
 MAX_TOKENS = 8192
 
 DEFAULT_SYSTEM_PROMPT = textwrap.dedent("""\
-    You are a helpful AI agent with access to web tools.
+    You are a helpful AI agent with access to web and file tools.
 
     You have access to the following tools:
 
     1. **fetch_url** — Fetch the text content of a web page URL.
     2. **tavily_search** — Search the web for current information on any topic.
+    3. **read_file** — Read a file from the local filesystem.
+    4. **write_file** — Write content to a file on the local filesystem.
 
     Use these tools as needed to answer the user's request thoroughly and
     accurately. Cite sources when using information from the web.
