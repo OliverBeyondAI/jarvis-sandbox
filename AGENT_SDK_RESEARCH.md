@@ -409,4 +409,166 @@ for await (const msg of query({
 
 ---
 
-*Research compiled 2026-05-10. SDK versions: `@anthropic-ai/claude-agent-sdk` v0.2.138, `anthropic` (Python) >=0.97.0.*
+## 8. Tavily Integration Patterns
+
+### Core Implementation
+
+All Tavily usage follows a consistent pattern via `agents/tools.py`:
+
+```python
+async def tavily_search(query: str, max_results: int = 5) -> dict[str, Any]:
+    """Async-safe Tavily search using thread executor."""
+    def _sync_search() -> dict[str, Any]:
+        from tavily import TavilyClient
+        client = TavilyClient()  # reads TAVILY_API_KEY from env
+        results = client.search(query=query, max_results=min(max_results, 10))
+        return {
+            "query": query,
+            "results": [{
+                "title": r.get("title", ""),
+                "url": r.get("url", ""),
+                "content": r.get("content", ""),
+                "score": r.get("score", 0),
+            } for r in results.get("results", [])]
+        }
+    return await asyncio.to_thread(_sync_search)
+```
+
+**Key pattern:** `asyncio.to_thread()` wraps the synchronous `TavilyClient` for async compatibility.
+
+### Specialized Tavily Client (`agents/trend_research/tavily_client.py`)
+
+```python
+class TavilyResearchClient:
+    """Domain-specific search methods with optimized query patterns."""
+
+    async def search_trends(self, domain: str, max_results: int | None = None):
+        """'emerging trends in {domain} 2026' — standard depth"""
+
+    async def deep_dive(self, topic: str, max_results: int | None = None):
+        """In-depth research — advanced search depth"""
+
+    async def search_news(self, topic: str, max_results: int | None = None):
+        """Recent news articles — optimized for recency"""
+```
+
+### Tavily Tool Schema (MCP-Compatible)
+
+```python
+TAVILY_SEARCH_TOOL = {
+    "name": "tavily_search",
+    "type": "custom",  # required for managed-agents API
+    "description": "Search the web using Tavily for current information...",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "query": {"type": "string", "description": "The search query"},
+            "max_results": {"type": "integer", "default": 5, "description": "Max results (1-10)"}
+        },
+        "required": ["query"]
+    }
+}
+```
+
+### Tavily Usage Across Projects
+
+| Project | Integration Style | Use Case |
+|---------|------------------|----------|
+| `agents/tools.py` | Core async wrapper | Shared tool for all agents |
+| `agents/trend_research/` | Specialized `TavilyResearchClient` | search_trends, deep_dive, search_news |
+| `agents/topic_researcher/` | MCP-exposed tool | FastMCP server wrapping Tavily |
+| `autonomous_research_agent/` | Multi-phase with gap analysis | 6-phase protocol uses Tavily across phases |
+| `chief_of_staff_agent/` | 5-phase protocol | Broad → Deep → Gap fill research |
+| `dispatch_agent/` | Parallel workers | N sub-agents searching concurrently |
+| `research_summarizer/` | URL + context enrichment | Tavily augments URL content |
+| `xena_marketing_agent/` | Market research | Competitive analysis, audience discovery |
+
+### MCP-Wrapped Tavily (`agents/topic_researcher/mcp_server.py`)
+
+```python
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP(name="topic-researcher-tools")
+
+@mcp.tool()
+def tavily_search(query: str, max_results: int = 5, search_depth: str = "basic"):
+    """Search the web for current information on any topic."""
+    results = _tavily_search(query, max_results, search_depth)
+    return json.dumps(results, indent=2)
+```
+
+This exposes Tavily as an MCP tool usable by any MCP-compatible client (Claude Desktop, Claude Agent SDK TS, etc.).
+
+---
+
+## 9. Multi-Step Workflow Patterns (Detailed)
+
+### Pattern A: Sequential Pipeline (3-Stage)
+
+```
+Topic → [Research Agent] → [Synthesis Agent] → [Memo Agent] → Output
+```
+
+Each stage is an independent agent with its own tools, system prompt, and output model. Stages communicate via Pydantic models (`ResearchReport → SynthesisReport → MemoBundle`).
+
+### Pattern B: Multi-Phase Research Protocol
+
+Used by `chief_of_staff_agent/` (5 phases) and `autonomous_research_agent/` (6 phases):
+
+```
+1. Plan     — Decompose query into sub-questions
+2. Broad    — Tavily search for each sub-question
+3. Deep     — Deep-dive on promising results (fetch_url)
+4. Gap      — Identify missing information, additional searches
+5. Synthesize — Produce structured findings
+6. Report   — Generate final artifact (6-phase only)
+```
+
+All within a single agent's tool-use loop — phases are guided by the system prompt, not hard-coded.
+
+### Pattern C: Parallel Sub-Agents (`dispatch_agent/`)
+
+```python
+# FanOutChannel dispatches tasks to N workers
+channel = FanOutChannel(workers=5)
+results = await channel.dispatch([
+    SubAgentTask(query="AI in healthcare"),
+    SubAgentTask(query="AI in education"),
+    SubAgentTask(query="AI in finance"),
+])
+# Each worker runs its own tool-use loop independently
+```
+
+Uses `asyncio.gather()` for true parallel execution. Each sub-agent has its own conversation history and tool access.
+
+### Pattern D: Graceful Degradation
+
+```python
+async def run(self, prompt: str) -> AgentResult:
+    try:
+        return await ManagedAgentRunner(...).run(prompt)  # beta API
+    except anthropic.APIError:
+        return await LocalAgentRunner(...).run(prompt)    # stable fallback
+```
+
+---
+
+## 10. Key File Reference
+
+| File | Purpose |
+|------|---------|
+| `agents/agent.py` | Base Agent class — ManagedAgentRunner + LocalAgentRunner |
+| `agents/tools.py` | All tool definitions, implementations, and dispatcher |
+| `agents/trend_research/tavily_client.py` | Specialized Tavily wrapper with domain methods |
+| `agents/topic_researcher/mcp_server.py` | MCP server exposing tools via FastMCP |
+| `agents/topic_researcher/agent.py` | Research agent with scratchpad pattern |
+| `agents/mcp_xena_marketing_agent/config.py` | Advanced frozen dataclass config |
+| `autonomous_research_agent/agent.py` | 6-phase research protocol |
+| `chief_of_staff_agent/agent.py` | 5-phase executive briefing protocol |
+| `dispatch_agent/channels.py` | FanOutChannel for parallel sub-agents |
+| `dispatch_agent/sub_agents.py` | ResearchSubAgent worker pattern |
+| `agents/AGENT_PATTERNS.md` | Pattern documentation |
+
+---
+
+*Research compiled 2026-05-10, updated 2026-05-24. SDK versions: `@anthropic-ai/claude-agent-sdk` v0.2.138, `anthropic` (Python) >=0.97.0.*

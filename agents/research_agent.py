@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """
-Research Agent — Autonomous research and synthesis with Claude Agent SDK.
+Research Agent — Multi-step web research with Claude Opus 4.6.
 
-A specialized agent that uses Tavily web search for discovery and a file system
-tool for persisting research notes to the data/ directory. Built on Opus 4.7
-with both managed-agents and local fallback runners.
+A specialized agent that conducts autonomous research using a structured
+workflow: search → extract → follow-up searches → synthesize. Uses Tavily
+for web search, httpx for URL fetching, and an in-memory scratchpad to
+accumulate findings across tool calls.
+
+Built on the Claude Agent SDK (Anthropic Python SDK) with both managed-agents
+and local fallback runners.
 
 Usage:
     python -m agents.research_agent "What are the latest advances in quantum computing?"
@@ -29,18 +33,280 @@ from typing import Any, Optional
 import anthropic
 import httpx
 
+
+# ---------------------------------------------------------------------------
+# Summarization & Key-Takeaway Extraction
+# ---------------------------------------------------------------------------
+
+@dataclass
+class KeyTakeaway:
+    """A single key takeaway extracted from research."""
+    point: str
+    supporting_evidence: str = ""
+    confidence: str = "medium"  # low, medium, high
+
+
+@dataclass
+class ResearchSummary:
+    """Structured summary with key takeaways extracted from research results."""
+    executive_summary: str = ""
+    key_takeaways: list[KeyTakeaway] = field(default_factory=list)
+    themes: list[str] = field(default_factory=list)
+    open_questions: list[str] = field(default_factory=list)
+    source_count: int = 0
+    word_count: int = 0
+
+    def format_text(self) -> str:
+        """Format summary as readable text."""
+        lines = []
+        lines.append("EXECUTIVE SUMMARY")
+        lines.append("-" * 40)
+        lines.append(self.executive_summary)
+        lines.append("")
+
+        if self.key_takeaways:
+            lines.append("KEY TAKEAWAYS")
+            lines.append("-" * 40)
+            for i, t in enumerate(self.key_takeaways, 1):
+                conf_marker = {"high": "+", "medium": "~", "low": "?"}.get(t.confidence, "~")
+                lines.append(f"  [{conf_marker}] {i}. {t.point}")
+                if t.supporting_evidence:
+                    lines.append(f"      Evidence: {t.supporting_evidence}")
+            lines.append("")
+
+        if self.themes:
+            lines.append("THEMES")
+            lines.append("-" * 40)
+            for theme in self.themes:
+                lines.append(f"  - {theme}")
+            lines.append("")
+
+        if self.open_questions:
+            lines.append("OPEN QUESTIONS")
+            lines.append("-" * 40)
+            for q in self.open_questions:
+                lines.append(f"  ? {q}")
+            lines.append("")
+
+        lines.append(f"Sources: {self.source_count} | Words: {self.word_count}")
+        return "\n".join(lines)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to JSON-serializable dict."""
+        return {
+            "executive_summary": self.executive_summary,
+            "key_takeaways": [
+                {"point": t.point, "supporting_evidence": t.supporting_evidence, "confidence": t.confidence}
+                for t in self.key_takeaways
+            ],
+            "themes": self.themes,
+            "open_questions": self.open_questions,
+            "source_count": self.source_count,
+            "word_count": self.word_count,
+        }
+
+
+def extract_summary(result: "ResearchResult") -> ResearchSummary:
+    """Extract a structured summary with key takeaways from a ResearchResult.
+
+    Uses heuristic parsing of the synthesis text to identify:
+    - Executive summary (first paragraph or explicit section)
+    - Key takeaways (bulleted findings, key points sections)
+    - Themes (section headings as topic themes)
+    - Open questions (explicit questions or "further research" items)
+    """
+    text = result.synthesis.strip()
+    if not text:
+        return ResearchSummary()
+
+    summary = ResearchSummary(
+        source_count=result.sources_consulted,
+        word_count=len(text.split()),
+    )
+
+    lines = text.split("\n")
+    sections = _split_into_sections(lines)
+
+    # Extract executive summary
+    summary.executive_summary = _extract_executive_summary(sections, text)
+
+    # Extract key takeaways
+    summary.key_takeaways = _extract_key_takeaways(sections, text)
+
+    # Extract themes from section headings
+    summary.themes = _extract_themes(sections)
+
+    # Extract open questions
+    summary.open_questions = _extract_open_questions(sections, text)
+
+    return summary
+
+
+def _split_into_sections(lines: list[str]) -> list[tuple[str, list[str]]]:
+    """Split text lines into (heading, body_lines) sections."""
+    sections: list[tuple[str, list[str]]] = []
+    current_heading = ""
+    current_body: list[str] = []
+
+    for line in lines:
+        stripped = line.strip()
+        # Detect markdown headings
+        if stripped.startswith("#"):
+            if current_heading or current_body:
+                sections.append((current_heading, current_body))
+            current_heading = stripped.lstrip("#").strip()
+            current_body = []
+        else:
+            current_body.append(line)
+
+    if current_heading or current_body:
+        sections.append((current_heading, current_body))
+
+    return sections
+
+
+def _extract_executive_summary(sections: list[tuple[str, list[str]]], full_text: str) -> str:
+    """Extract executive summary from sections or first paragraph."""
+    # Look for explicit executive/summary section
+    for heading, body in sections:
+        heading_lower = heading.lower()
+        if any(kw in heading_lower for kw in ["executive summary", "summary", "overview", "tldr", "tl;dr"]):
+            text = "\n".join(line for line in body if line.strip()).strip()
+            if text:
+                return text
+
+    # Fall back to first non-empty paragraph
+    paragraphs = full_text.split("\n\n")
+    for para in paragraphs:
+        cleaned = para.strip().lstrip("#").strip()
+        if cleaned and len(cleaned) > 20 and not cleaned.startswith("-") and not cleaned.startswith("*"):
+            # Limit to ~3 sentences
+            sentences = re.split(r'(?<=[.!?])\s+', cleaned)
+            return " ".join(sentences[:3])
+
+    return full_text[:300].strip()
+
+
+def _extract_key_takeaways(sections: list[tuple[str, list[str]]], full_text: str) -> list[KeyTakeaway]:
+    """Extract key takeaways from bullet points in findings/takeaway sections."""
+    takeaways: list[KeyTakeaway] = []
+
+    # Priority sections for takeaways
+    priority_keywords = ["key findings", "key takeaways", "takeaways", "findings", "highlights",
+                         "key points", "main findings", "conclusions", "key insights"]
+
+    target_bodies: list[list[str]] = []
+    for heading, body in sections:
+        if any(kw in heading.lower() for kw in priority_keywords):
+            target_bodies.append(body)
+
+    # If no specific section found, scan all bullet points
+    if not target_bodies:
+        all_body = [line for _, body in sections for line in body]
+        target_bodies.append(all_body)
+
+    for body in target_bodies:
+        for line in body:
+            stripped = line.strip()
+            # Match bullet points: -, *, •, or numbered lists
+            bullet_match = re.match(r'^(?:[-*•]|\d+[.)]\s)', stripped)
+            if bullet_match:
+                point = re.sub(r'^(?:[-*•]|\d+[.)]\s*)\s*', '', stripped).strip()
+                if len(point) > 10:  # Skip trivially short bullets
+                    # Strip bold markdown
+                    point = re.sub(r'\*\*(.+?)\*\*', r'\1', point)
+                    confidence = _infer_confidence(point)
+                    takeaways.append(KeyTakeaway(point=point, confidence=confidence))
+
+    # Deduplicate and limit
+    seen: set[str] = set()
+    unique: list[KeyTakeaway] = []
+    for t in takeaways:
+        normalized = t.point.lower()[:60]
+        if normalized not in seen:
+            seen.add(normalized)
+            unique.append(t)
+
+    return unique[:10]  # Cap at 10
+
+
+def _infer_confidence(text: str) -> str:
+    """Infer confidence level from language cues."""
+    low_cues = ["may", "might", "could", "uncertain", "unclear", "preliminary", "early", "limited"]
+    high_cues = ["clearly", "significant", "demonstrated", "proven", "established", "confirmed", "substantial"]
+
+    text_lower = text.lower()
+    low_score = sum(1 for cue in low_cues if cue in text_lower)
+    high_score = sum(1 for cue in high_cues if cue in text_lower)
+
+    if high_score > low_score:
+        return "high"
+    elif low_score > high_score:
+        return "low"
+    return "medium"
+
+
+def _extract_themes(sections: list[tuple[str, list[str]]]) -> list[str]:
+    """Extract thematic topics from section headings."""
+    skip_headings = {"", "executive summary", "summary", "overview", "introduction",
+                     "conclusion", "conclusions", "sources", "references", "further research",
+                     "open questions", "key findings", "key takeaways", "takeaways",
+                     "findings", "methodology", "appendix"}
+    themes = []
+    for heading, _ in sections:
+        heading_clean = heading.strip()
+        if heading_clean and heading_clean.lower() not in skip_headings:
+            # Strip numbering
+            theme = re.sub(r'^\d+[.)]\s*', '', heading_clean)
+            if theme and len(theme) > 2:
+                themes.append(theme)
+    return themes[:8]
+
+
+def _extract_open_questions(sections: list[tuple[str, list[str]]], full_text: str) -> list[str]:
+    """Extract open questions or areas for further research."""
+    questions: list[str] = []
+
+    # Look for explicit sections
+    question_keywords = ["open questions", "further research", "future research",
+                         "areas for further", "limitations", "gaps"]
+    for heading, body in sections:
+        if any(kw in heading.lower() for kw in question_keywords):
+            for line in body:
+                stripped = line.strip()
+                bullet_match = re.match(r'^(?:[-*•?]|\d+[.)]\s)', stripped)
+                if bullet_match:
+                    q = re.sub(r'^(?:[-*•?]|\d+[.)]\s*)\s*', '', stripped).strip()
+                    if q and len(q) > 10:
+                        questions.append(q)
+
+    # Also find inline questions (single-line sentences ending with ?)
+    for line in full_text.split("\n"):
+        stripped_line = line.strip()
+        # Skip headings, bullets, and empty lines
+        if not stripped_line or stripped_line.startswith(("#", "-", "*", "•")):
+            continue
+        for sq in re.findall(r'([A-Z][^.!?\n]{15,}\?)', stripped_line):
+            sq = sq.strip()
+            # Skip if already captured
+            if not any(sq in existing or existing in sq for existing in questions):
+                questions.append(sq)
+
+    return questions[:5]
+
+
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-MODEL = "claude-opus-4-7-20250501"
+MODEL = "claude-opus-4-6-20250501"
 MAX_TOKENS = 8192
 MAX_TURNS = 30
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 
 SYSTEM_PROMPT = textwrap.dedent("""\
-    You are an autonomous research agent powered by Claude Opus 4.7. Your role
+    You are an autonomous research agent powered by Claude Opus 4.6. Your role
     is to conduct thorough, multi-step research on any topic and produce a
     well-structured synthesis.
 
@@ -49,51 +315,93 @@ SYSTEM_PROMPT = textwrap.dedent("""\
     1. **tavily_search** — Search the web for current information. Use multiple
        queries to cover different angles of the topic.
     2. **fetch_url** — Retrieve full content from a specific URL for deeper reading.
-    3. **save_notes** — Save research notes, findings, or the final synthesis to
-       the local file system (data/ directory). Use this to persist intermediate
-       findings and the final report.
+    3. **save_notes** — Save research notes to your scratchpad. Use this to
+       accumulate key findings, quotes, and source info as you research.
+       Notes persist across all your tool calls and are available for synthesis.
+    4. **save_report** — Save the final research report to the filesystem
+       (data/ directory). Use this only for the final output.
 
     ## Research Protocol
 
-    Follow this structured approach:
+    Follow this structured multi-step approach:
 
-    1. **Discovery Phase**: Issue 3-5 diverse search queries to map the landscape.
-       Vary query phrasing to capture different perspectives and sources.
+    ### Phase 1: Discovery (search)
+    Issue 3-5 diverse search queries to map the landscape. Vary query phrasing
+    to capture different perspectives and source types. After each search,
+    use save_notes to record the most important findings.
 
-    2. **Deep Dive Phase**: Select the most promising sources and fetch their full
-       content. Look for primary sources, expert opinions, and recent developments.
+    ### Phase 2: Deep Extraction (extract)
+    Select the 2-3 most promising sources from your search results and fetch
+    their full content with fetch_url. Read carefully and save_notes with
+    key quotes, data points, and expert opinions.
 
-    3. **Synthesis Phase**: Organize findings into a coherent narrative. Identify
-       key themes, areas of consensus, open questions, and emerging trends.
+    ### Phase 3: Follow-up Searches (follow-up)
+    Based on what you learned in Phase 2, identify gaps or new questions.
+    Run 2-3 follow-up searches targeting these gaps. Save notes on anything new.
 
-    4. **Output Phase**: Save the final synthesis using save_notes with a clear
-       filename. The synthesis should include:
-       - Executive summary (2-3 sentences)
-       - Key findings (bulleted)
-       - Detailed analysis (organized by theme)
-       - Sources cited
-       - Open questions / areas for further research
+    ### Phase 4: Synthesis (synthesize)
+    Review all your accumulated notes and produce a comprehensive synthesis.
+    Save the final report using save_report with a clear filename. The report
+    should include:
+    - Executive summary (2-3 sentences)
+    - Key findings (bulleted)
+    - Detailed analysis (organized by theme)
+    - Sources cited with URLs
+    - Open questions / areas for further research
 
     ## Guidelines
 
     - Always cite sources with URLs.
     - Prefer recent sources (last 12 months when relevant).
     - Acknowledge uncertainty and conflicting information.
-    - Save intermediate notes as you go (e.g., "notes_[topic]_discovery.md").
-    - Save the final synthesis as "research_[topic]_[date].md".
+    - Save notes frequently — your scratchpad is your working memory.
     - Be thorough but concise — aim for actionable insights over exhaustive detail.
 """)
 
 BRIEF_SYSTEM_PROMPT = textwrap.dedent("""\
-    You are a research agent with web search, URL fetching, and file saving tools.
+    You are a research agent with web search, URL fetching, and note-taking tools.
     Conduct focused research on the given topic: search for key information, read
-    important sources, and save a concise summary to the data/ directory.
-    Always cite sources. Save your output using save_notes.
+    1-2 important sources, and produce a concise summary. Save notes as you go
+    using save_notes, then save your final report with save_report.
+    Always cite sources.
 """)
 
 
 # ---------------------------------------------------------------------------
-# Tool Schemas (Anthropic custom tool format)
+# Scratchpad — Accumulator for multi-step research
+# ---------------------------------------------------------------------------
+
+@dataclass
+class Scratchpad:
+    """In-memory scratchpad that accumulates research notes across tool calls.
+
+    The scratchpad preserves intermediate findings so the agent can reference
+    them during synthesis without re-fetching sources.
+    """
+
+    entries: list[dict[str, str]] = field(default_factory=list)
+
+    def add(self, content: str, label: str = "notes") -> str:
+        """Add a note to the scratchpad and return confirmation."""
+        self.entries.append({"label": label, "content": content})
+        return f"Saved notes under '{label}' ({len(self.entries)} total entries)."
+
+    def dump(self) -> str:
+        """Dump all scratchpad entries as formatted text."""
+        if not self.entries:
+            return "(no notes saved yet)"
+        parts = []
+        for i, entry in enumerate(self.entries, 1):
+            parts.append(f"[{i}] {entry['label']}:\n{entry['content']}")
+        return "\n\n".join(parts)
+
+    def count(self) -> int:
+        """Return number of entries."""
+        return len(self.entries)
+
+
+# ---------------------------------------------------------------------------
+# Tool Schemas (Anthropic custom tool format for managed agents)
 # ---------------------------------------------------------------------------
 
 TAVILY_SEARCH_TOOL: dict[str, Any] = {
@@ -115,6 +423,15 @@ TAVILY_SEARCH_TOOL: dict[str, Any] = {
                 "type": "integer",
                 "description": "Maximum number of results (1-10, default 5).",
                 "default": 5,
+            },
+            "search_depth": {
+                "type": "string",
+                "enum": ["basic", "advanced"],
+                "description": (
+                    "Search depth — 'basic' is faster, 'advanced' is more thorough. "
+                    "Default: 'basic'."
+                ),
+                "default": "basic",
             },
         },
         "required": ["query"],
@@ -145,9 +462,37 @@ SAVE_NOTES_TOOL: dict[str, Any] = {
     "name": "save_notes",
     "type": "custom",
     "description": (
-        "Save research notes or synthesis to the local file system (data/ directory). "
-        "Use this to persist intermediate findings and the final research report. "
-        "Files are saved as markdown in the project's data/ directory."
+        "Save research notes to your scratchpad. Notes accumulate across calls "
+        "and are available for reference during synthesis. Use this frequently "
+        "to record key findings, quotes, and source information as you research."
+    ),
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "content": {
+                "type": "string",
+                "description": "The research notes to save.",
+            },
+            "label": {
+                "type": "string",
+                "description": (
+                    "A short label for this set of notes (e.g., 'discovery_search_1', "
+                    "'deep_dive_arxiv', 'follow_up_gaps')."
+                ),
+                "default": "notes",
+            },
+        },
+        "required": ["content"],
+    },
+}
+
+SAVE_REPORT_TOOL: dict[str, Any] = {
+    "name": "save_report",
+    "type": "custom",
+    "description": (
+        "Save the final research report to the local filesystem (data/ directory). "
+        "Use this only for the completed synthesis, not for intermediate notes. "
+        "Files are saved as markdown."
     ),
     "input_schema": {
         "type": "object",
@@ -155,38 +500,46 @@ SAVE_NOTES_TOOL: dict[str, Any] = {
             "filename": {
                 "type": "string",
                 "description": (
-                    "Name of the file to save (e.g., 'research_quantum_2026-05-06.md'). "
+                    "Name of the file to save (e.g., 'research_quantum_2026-05-24.md'). "
                     "Will be saved inside the data/ directory."
                 ),
             },
             "content": {
                 "type": "string",
-                "description": "The markdown content to write to the file.",
-            },
-            "append": {
-                "type": "boolean",
-                "description": "If true, append to existing file instead of overwriting.",
-                "default": False,
+                "description": "The markdown content of the final report.",
             },
         },
         "required": ["filename", "content"],
     },
 }
 
-ALL_TOOLS: list[dict[str, Any]] = [TAVILY_SEARCH_TOOL, FETCH_URL_TOOL, SAVE_NOTES_TOOL]
+ALL_TOOLS: list[dict[str, Any]] = [
+    TAVILY_SEARCH_TOOL,
+    FETCH_URL_TOOL,
+    SAVE_NOTES_TOOL,
+    SAVE_REPORT_TOOL,
+]
 
 
 # ---------------------------------------------------------------------------
 # Tool Implementations
 # ---------------------------------------------------------------------------
 
-async def tavily_search(query: str, max_results: int = 5) -> dict[str, Any]:
+async def tavily_search(
+    query: str,
+    max_results: int = 5,
+    search_depth: str = "basic",
+) -> dict[str, Any]:
     """Search the web using the Tavily API."""
     def _sync_search() -> dict[str, Any]:
         try:
             from tavily import TavilyClient
             client = TavilyClient()  # Uses TAVILY_API_KEY env var
-            results = client.search(query=query, max_results=min(max_results, 10))
+            results = client.search(
+                query=query,
+                max_results=max(1, min(max_results, 10)),
+                search_depth=search_depth,
+            )
             return {
                 "query": query,
                 "results": [
@@ -250,10 +603,15 @@ async def fetch_url(url: str) -> dict[str, Any]:
         return {"url": url, "error": f"{type(e).__name__}: {e}"}
 
 
-async def save_notes(filename: str, content: str, append: bool = False) -> dict[str, Any]:
-    """Save research notes to the data/ directory."""
+def save_notes(scratchpad: Scratchpad, content: str, label: str = "notes") -> dict[str, Any]:
+    """Save research notes to the scratchpad."""
+    msg = scratchpad.add(content, label)
+    return {"saved": True, "message": msg, "total_entries": scratchpad.count()}
+
+
+async def save_report(filename: str, content: str) -> dict[str, Any]:
+    """Save the final research report to the data/ directory."""
     try:
-        # Sanitize filename — prevent path traversal
         safe_name = Path(filename).name
         if not safe_name:
             return {"error": "Invalid filename"}
@@ -261,12 +619,9 @@ async def save_notes(filename: str, content: str, append: bool = False) -> dict[
         filepath = DATA_DIR / safe_name
         DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-        mode = "a" if append else "w"
-        prefix = "\n\n---\n\n" if append and filepath.exists() else ""
-
         def _write():
-            with open(filepath, mode, encoding="utf-8") as f:
-                f.write(prefix + content)
+            with open(filepath, "w", encoding="utf-8") as f:
+                f.write(content)
 
         await asyncio.to_thread(_write)
 
@@ -275,7 +630,6 @@ async def save_notes(filename: str, content: str, append: bool = False) -> dict[
             "path": str(filepath),
             "filename": safe_name,
             "size_bytes": filepath.stat().st_size,
-            "mode": "appended" if append else "created",
         }
     except Exception as e:
         return {"error": f"Failed to save: {type(e).__name__}: {e}"}
@@ -285,15 +639,32 @@ async def save_notes(filename: str, content: str, append: bool = False) -> dict[
 # Tool Dispatcher
 # ---------------------------------------------------------------------------
 
-async def execute_tool(name: str, input_dict: dict[str, Any]) -> str:
+async def execute_tool(
+    name: str,
+    input_dict: dict[str, Any],
+    scratchpad: Scratchpad,
+) -> str:
     """Execute a tool by name and return JSON string result."""
     try:
         if name == "tavily_search":
-            result = await tavily_search(**input_dict)
+            result = await tavily_search(
+                query=input_dict["query"],
+                max_results=input_dict.get("max_results", 5),
+                search_depth=input_dict.get("search_depth", "basic"),
+            )
         elif name == "fetch_url":
-            result = await fetch_url(**input_dict)
+            result = await fetch_url(input_dict["url"])
         elif name == "save_notes":
-            result = await save_notes(**input_dict)
+            result = save_notes(
+                scratchpad,
+                content=input_dict["content"],
+                label=input_dict.get("label", "notes"),
+            )
+        elif name == "save_report":
+            result = await save_report(
+                filename=input_dict["filename"],
+                content=input_dict["content"],
+            )
         else:
             result = {"error": f"Unknown tool: {name}"}
         return json.dumps(result, default=str)
@@ -312,6 +683,7 @@ class ResearchResult:
     tool_calls: list[dict[str, Any]] = field(default_factory=list)
     files_saved: list[str] = field(default_factory=list)
     sources_consulted: int = 0
+    scratchpad_entries: int = 0
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
     @property
@@ -319,9 +691,14 @@ class ResearchResult:
         """One-line summary of the research run."""
         return (
             f"Research complete: {self.sources_consulted} sources consulted, "
+            f"{self.scratchpad_entries} notes accumulated, "
             f"{len(self.files_saved)} file(s) saved, "
             f"{len(self.tool_calls)} tool calls made."
         )
+
+    def summarize(self) -> "ResearchSummary":
+        """Extract structured summary with key takeaways from the synthesis."""
+        return extract_summary(self)
 
 
 # ---------------------------------------------------------------------------
@@ -331,7 +708,12 @@ class ResearchResult:
 class ManagedResearchRunner:
     """Runs the research agent via Claude Agent SDK managed-agents API."""
 
-    def __init__(self, model: str = MODEL, system_prompt: str = SYSTEM_PROMPT, verbose: bool = True):
+    def __init__(
+        self,
+        model: str = MODEL,
+        system_prompt: str = SYSTEM_PROMPT,
+        verbose: bool = True,
+    ):
         self.client = anthropic.Anthropic()
         self.model = model
         self.system_prompt = system_prompt
@@ -342,13 +724,14 @@ class ManagedResearchRunner:
         agent = None
         environment = None
         result = ResearchResult()
+        scratchpad = Scratchpad()
 
         try:
             self._log("Creating managed research agent...")
             agent = self.client.beta.agents.create(
                 model=self.model,
                 name="research-agent",
-                description="Autonomous research agent with web search and file system tools.",
+                description="Autonomous research agent with multi-step web research workflow.",
                 system=self.system_prompt,
                 tools=ALL_TOOLS,
             )
@@ -387,15 +770,10 @@ class ManagedResearchRunner:
                         self._log(f"    [{tool_name}] {_summarize(tool_input)}")
 
                         result.tool_calls.append({"name": tool_name, "input": tool_input})
-                        tool_result = await execute_tool(tool_name, tool_input)
+                        tool_result = await execute_tool(tool_name, tool_input, scratchpad)
 
                         # Track files saved and sources
-                        if tool_name == "save_notes":
-                            parsed = json.loads(tool_result)
-                            if parsed.get("saved"):
-                                result.files_saved.append(parsed["path"])
-                        elif tool_name in ("tavily_search", "fetch_url"):
-                            result.sources_consulted += 1
+                        _track_result(result, tool_name, tool_result)
 
                         pending_tool_results.append({
                             "type": "user.custom_tool_result",
@@ -408,6 +786,7 @@ class ManagedResearchRunner:
                         if hasattr(stop, "type") and stop.type == "end_turn":
                             self._log("  Research complete.")
                             result.synthesis = final_text
+                            result.scratchpad_entries = scratchpad.count()
                             return result
 
                 if pending_tool_results:
@@ -419,10 +798,12 @@ class ManagedResearchRunner:
                 else:
                     if final_text:
                         result.synthesis = final_text
+                        result.scratchpad_entries = scratchpad.count()
                         return result
                     break
 
             result.synthesis = final_text or "Research agent reached maximum rounds."
+            result.scratchpad_entries = scratchpad.count()
             return result
 
         finally:
@@ -447,9 +828,19 @@ class ManagedResearchRunner:
 # ---------------------------------------------------------------------------
 
 class LocalResearchRunner:
-    """Runs the research agent locally using AsyncAnthropic with tool loop."""
+    """Runs the research agent locally using AsyncAnthropic with tool loop.
 
-    def __init__(self, model: str = MODEL, system_prompt: str = SYSTEM_PROMPT, verbose: bool = True):
+    Drives the multi-step research workflow client-side: the system prompt
+    guides the model through search → extract → follow-up → synthesize,
+    while the scratchpad accumulates findings across turns.
+    """
+
+    def __init__(
+        self,
+        model: str = MODEL,
+        system_prompt: str = SYSTEM_PROMPT,
+        verbose: bool = True,
+    ):
         self.client = anthropic.AsyncAnthropic()
         self.model = model
         self.system_prompt = system_prompt
@@ -460,9 +851,10 @@ class LocalResearchRunner:
         return [{k: v for k, v in tool.items() if k != "type"} for tool in ALL_TOOLS]
 
     async def run(self, prompt: str) -> ResearchResult:
-        """Run the local agentic loop."""
+        """Run the local agentic loop with scratchpad accumulation."""
         messages: list[dict[str, Any]] = [{"role": "user", "content": prompt}]
         result = ResearchResult()
+        scratchpad = Scratchpad()
 
         self._log("Starting local research loop...")
 
@@ -479,7 +871,8 @@ class LocalResearchRunner:
 
             if response.stop_reason == "end_turn":
                 result.synthesis = _extract_text(response)
-                self._log("  Research complete.")
+                result.scratchpad_entries = scratchpad.count()
+                self._log(f"  Research complete. ({scratchpad.count()} scratchpad entries)")
                 return result
 
             # Process tool calls
@@ -492,15 +885,8 @@ class LocalResearchRunner:
                     self._log(f"    [{block.name}] {_summarize(block.input)}")
                     result.tool_calls.append({"name": block.name, "input": block.input})
 
-                    tool_result = await execute_tool(block.name, block.input)
-
-                    # Track saved files and sources
-                    if block.name == "save_notes":
-                        parsed = json.loads(tool_result)
-                        if parsed.get("saved"):
-                            result.files_saved.append(parsed["path"])
-                    elif block.name in ("tavily_search", "fetch_url"):
-                        result.sources_consulted += 1
+                    tool_result = await execute_tool(block.name, block.input, scratchpad)
+                    _track_result(result, block.name, tool_result)
 
                     tool_results.append({
                         "type": "tool_result",
@@ -512,9 +898,11 @@ class LocalResearchRunner:
                 messages.append({"role": "user", "content": tool_results})
             else:
                 result.synthesis = _extract_text(response)
+                result.scratchpad_entries = scratchpad.count()
                 return result
 
         result.synthesis = "Research agent reached maximum turns."
+        result.scratchpad_entries = scratchpad.count()
         return result
 
     def _log(self, msg: str) -> None:
@@ -528,17 +916,18 @@ class LocalResearchRunner:
 
 class ResearchAgent:
     """
-    Autonomous research agent with web search and file system tools.
+    Autonomous research agent with multi-step web research workflow.
 
-    Uses Claude Opus 4.7 via the Claude Agent SDK (managed-agents API) with
-    automatic fallback to a local async runner. Conducts multi-step research
-    and saves structured synthesis to the data/ directory.
+    Uses Claude Opus 4.6 via the Claude Agent SDK (managed-agents API) with
+    automatic fallback to a local async runner. Conducts research through
+    four phases — discovery, extraction, follow-up, synthesis — accumulating
+    findings in a scratchpad across tool calls.
 
     Example:
         agent = ResearchAgent()
         result = await agent.research("What are the latest advances in quantum computing?")
         print(result.synthesis)
-        print(result.files_saved)
+        print(result.summary)
     """
 
     def __init__(
@@ -562,7 +951,13 @@ class ResearchAgent:
 
     async def research(self, topic: str) -> ResearchResult:
         """
-        Conduct autonomous research on the given topic.
+        Conduct autonomous multi-step research on the given topic.
+
+        The agent follows a structured workflow:
+        1. Discovery — broad web searches to map the landscape
+        2. Extraction — deep reading of promising sources
+        3. Follow-up — targeted searches to fill gaps
+        4. Synthesis — structured report from accumulated notes
 
         Args:
             topic: The research question or topic to investigate.
@@ -605,9 +1000,9 @@ class ResearchAgent:
                 Today's date: {today}
 
                 Please conduct thorough research on this topic following your research
-                protocol. Search from multiple angles, read key sources in depth, and
-                produce a comprehensive synthesis. Save your findings to the data/
-                directory as you go, with the final synthesis as the last file saved.
+                protocol. Execute all four phases — discovery, deep extraction, follow-up
+                searches, and synthesis. Use save_notes frequently to accumulate findings,
+                then save the final report with save_report.
             """)
         else:
             return textwrap.dedent(f"""\
@@ -615,7 +1010,8 @@ class ResearchAgent:
                 Date: {today}
 
                 Conduct focused research on this topic. Search for the most important
-                recent information, summarize key findings, and save to data/.
+                recent information, save key notes, then produce a concise final report
+                with save_report.
             """)
 
 
@@ -642,7 +1038,22 @@ def _summarize(input_dict: dict[str, Any]) -> str:
         return f'url="{u[:60]}..."' if len(u) > 60 else f'url="{u}"'
     if "filename" in input_dict:
         return f'file="{input_dict["filename"]}"'
+    if "label" in input_dict:
+        return f'notes: {input_dict["label"]}'
     return json.dumps(input_dict, default=str)[:60]
+
+
+def _track_result(result: ResearchResult, tool_name: str, tool_result_json: str) -> None:
+    """Update ResearchResult tracking fields based on tool execution."""
+    try:
+        parsed = json.loads(tool_result_json)
+    except (json.JSONDecodeError, TypeError):
+        return
+
+    if tool_name == "save_report" and parsed.get("saved"):
+        result.files_saved.append(parsed.get("path", "unknown"))
+    elif tool_name in ("tavily_search", "fetch_url") and "error" not in parsed:
+        result.sources_consulted += 1
 
 
 # ---------------------------------------------------------------------------
@@ -652,7 +1063,7 @@ def _summarize(input_dict: dict[str, Any]) -> str:
 def main():
     """CLI interface for the research agent."""
     parser = argparse.ArgumentParser(
-        description="Autonomous Research Agent — Claude Opus 4.7 + Tavily Search",
+        description="Autonomous Research Agent — Claude Opus 4.6 + Tavily Search",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=textwrap.dedent("""\
             Examples:
@@ -672,8 +1083,22 @@ def main():
     parser.add_argument("--output", "-o", help="Output directory (default: ./data/)")
     parser.add_argument("--quiet", "-q", action="store_true", help="Suppress progress logging")
     parser.add_argument("--json", action="store_true", help="Output result as JSON")
+    parser.add_argument(
+        "--summarize", "-s", action="store_true",
+        help="Extract and display structured summary with key takeaways",
+    )
+    parser.add_argument(
+        "--demo", action="store_true",
+        help="Run end-to-end demo with mock data (no API keys needed)",
+    )
 
     args = parser.parse_args()
+
+    # Demo mode: run end-to-end verification with mock data
+    if args.demo:
+        _run_demo(verbose=not args.quiet, as_json=args.json)
+        return
+
     topic = args.query or args.topic
 
     if not topic:
@@ -692,13 +1117,16 @@ def main():
     result = asyncio.run(agent.research(topic))
 
     if args.json:
-        output = {
+        output: dict[str, Any] = {
             "synthesis": result.synthesis,
             "files_saved": result.files_saved,
             "sources_consulted": result.sources_consulted,
+            "scratchpad_entries": result.scratchpad_entries,
             "tool_calls_count": len(result.tool_calls),
             "timestamp": result.timestamp,
         }
+        if args.summarize:
+            output["summary"] = result.summarize().to_dict()
         print(json.dumps(output, indent=2))
     else:
         print("\n" + "=" * 72)
@@ -711,7 +1139,161 @@ def main():
             print("\nFiles saved:")
             for f in result.files_saved:
                 print(f"  - {f}")
+
+        if args.summarize:
+            research_summary = result.summarize()
+            print("\n" + "=" * 72)
+            print("STRUCTURED SUMMARY & KEY TAKEAWAYS")
+            print("=" * 72 + "\n")
+            print(research_summary.format_text())
+
         print()
+
+
+def _run_demo(verbose: bool = True, as_json: bool = False) -> None:
+    """Run an end-to-end demo with sample data to verify the pipeline.
+
+    This exercises the full pipeline — Scratchpad, tool dispatch, ResearchResult,
+    and summarization — without requiring API keys or network access.
+    """
+    def _log(msg: str) -> None:
+        if verbose:
+            print(f"[demo] {msg}", file=sys.stderr)
+
+    _log("Running end-to-end pipeline verification...")
+
+    # 1. Scratchpad accumulation
+    _log("Phase 1: Scratchpad accumulation")
+    pad = Scratchpad()
+    pad.add("Found 3 major papers on quantum error correction published in 2026.", "discovery_search")
+    pad.add("IBM achieved 1000+ qubit processor; Google demonstrated quantum advantage in materials simulation.", "deep_dive")
+    pad.add("Key gap: limited real-world commercial applications beyond simulation.", "follow_up")
+    assert pad.count() == 3, "Scratchpad should have 3 entries"
+    _log(f"  Scratchpad: {pad.count()} entries accumulated")
+
+    # 2. Tool dispatch (save_notes)
+    _log("Phase 2: Tool dispatch verification")
+    result_json = asyncio.run(execute_tool(
+        "save_notes",
+        {"content": "Synthesis note: quantum computing is advancing rapidly", "label": "synthesis"},
+        pad,
+    ))
+    parsed = json.loads(result_json)
+    assert parsed["saved"] is True, "save_notes should succeed"
+    assert pad.count() == 4
+    _log(f"  Tool dispatch: save_notes OK ({pad.count()} entries)")
+
+    # 3. Build a ResearchResult with realistic synthesis
+    _log("Phase 3: ResearchResult construction")
+    sample_synthesis = textwrap.dedent("""\
+        # Quantum Computing: State of the Field (2026)
+
+        ## Executive Summary
+
+        Quantum computing has reached a critical inflection point in 2026, with major
+        hardware milestones from IBM and Google, significant advances in error correction,
+        and the first commercially viable quantum applications emerging in drug discovery
+        and materials science.
+
+        ## Key Findings
+
+        - IBM's 1,121-qubit Condor processor demonstrated significant error-corrected computation
+        - Google achieved quantum advantage in materials simulation, clearly outperforming classical methods
+        - Quantum error correction has improved 10x, with new surface code implementations
+        - The quantum software ecosystem is maturing, with Qiskit and Cirq seeing major updates
+        - Early commercial applications in pharmaceutical molecular simulation are emerging
+        - Cloud quantum access (IBM Quantum, Amazon Braket) has expanded to 15+ providers
+        - Funding for quantum startups reached $4.2B in 2025, though growth may be slowing
+
+        ## Hardware Advances
+
+        The race for quantum supremacy continues, with IBM, Google, and new entrants
+        like PsiQuantum pushing boundaries. IBM's Condor processor represents a substantial
+        leap, while photonic quantum computing approaches could disrupt the field.
+
+        ## Software & Algorithms
+
+        New variational algorithms have demonstrated proven speedups for optimization
+        problems. The development of quantum machine learning libraries has accelerated,
+        though practical advantages over classical ML remain uncertain.
+
+        ## Commercial Applications
+
+        Drug discovery companies like Zapata and QC Ware have reported preliminary
+        results showing quantum-enhanced molecular simulations outperforming classical
+        methods for specific use cases. Financial services firms might adopt quantum
+        risk modeling by 2027.
+
+        ## Open Questions
+
+        - When will fault-tolerant quantum computing become practical?
+        - Can quantum advantage be maintained as classical algorithms improve?
+        - What is the timeline for quantum cryptography to threaten current encryption?
+
+        ## Sources
+
+        - https://example.com/ibm-condor-2026
+        - https://example.com/google-quantum-materials
+        - https://example.com/quantum-market-report-2026
+    """)
+
+    result = ResearchResult(
+        synthesis=sample_synthesis,
+        tool_calls=[
+            {"name": "tavily_search", "input": {"query": "quantum computing 2026"}},
+            {"name": "tavily_search", "input": {"query": "quantum error correction advances"}},
+            {"name": "fetch_url", "input": {"url": "https://example.com/ibm-condor-2026"}},
+            {"name": "save_notes", "input": {"content": "IBM Condor findings", "label": "deep_dive"}},
+            {"name": "tavily_search", "input": {"query": "quantum computing commercial applications"}},
+            {"name": "save_report", "input": {"filename": "quantum_2026.md", "content": sample_synthesis}},
+        ],
+        files_saved=["/data/quantum_2026.md"],
+        sources_consulted=5,
+        scratchpad_entries=4,
+    )
+    _log(f"  ResearchResult: {result.summary}")
+
+    # 4. Summarization and key-takeaway extraction
+    _log("Phase 4: Summarization & key-takeaway extraction")
+    research_summary = result.summarize()
+
+    assert research_summary.executive_summary, "Should extract executive summary"
+    assert len(research_summary.key_takeaways) >= 3, f"Should extract >=3 takeaways, got {len(research_summary.key_takeaways)}"
+    assert len(research_summary.themes) >= 1, f"Should extract >=1 theme, got {len(research_summary.themes)}"
+    assert len(research_summary.open_questions) >= 1, f"Should extract >=1 open question, got {len(research_summary.open_questions)}"
+    assert research_summary.source_count == 5
+    assert research_summary.word_count > 50
+
+    _log(f"  Executive summary: {len(research_summary.executive_summary)} chars")
+    _log(f"  Key takeaways: {len(research_summary.key_takeaways)}")
+    _log(f"  Themes: {research_summary.themes}")
+    _log(f"  Open questions: {len(research_summary.open_questions)}")
+
+    # 5. Output
+    if as_json:
+        output = {
+            "demo": True,
+            "pipeline_status": "OK",
+            "synthesis_word_count": research_summary.word_count,
+            "summary": research_summary.to_dict(),
+            "result_metadata": {
+                "sources_consulted": result.sources_consulted,
+                "scratchpad_entries": result.scratchpad_entries,
+                "files_saved": result.files_saved,
+                "tool_calls_count": len(result.tool_calls),
+            },
+        }
+        print(json.dumps(output, indent=2))
+    else:
+        print("\n" + "=" * 72)
+        print("END-TO-END DEMO — PIPELINE VERIFICATION")
+        print("=" * 72 + "\n")
+        print(research_summary.format_text())
+        print("\n" + "-" * 72)
+        print(result.summary)
+        print()
+
+    _log("All assertions passed. Pipeline verified end-to-end.")
 
 
 if __name__ == "__main__":
