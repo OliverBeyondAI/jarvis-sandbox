@@ -57,7 +57,7 @@ Returns an `AsyncGenerator<SDKMessage, void>` with streaming control methods:
 ### `startup()` — Pre-warmed Queries (Zero Latency)
 
 ```typescript
-const warm = await startup({ options: { model: 'claude-sonnet-4-6' } });
+const warm = await startup({ options: { model: 'claude-opus-4-7' } });
 const q = warm.query("Analyze this codebase");
 for await (const msg of q) { /* ... */ }
 warm.close();
@@ -112,7 +112,7 @@ const options = {
 
 | Option | Values | Purpose |
 |--------|--------|---------|
-| `model` | `'claude-sonnet-4-6'`, `'claude-opus-4-7'` | Model selection |
+| `model` | `'claude-opus-4-7'`, `'claude-sonnet-4-6'` | Model selection |
 | `thinking` | `{ type: 'adaptive' }`, `{ type: 'enabled', budgetTokens: N }` | Extended thinking |
 | `effort` | `'low'` / `'medium'` / `'high'` / `'xhigh'` / `'max'` | Reasoning effort |
 | `maxTurns` | number | Turn limit |
@@ -314,7 +314,7 @@ ManagedAgent API (beta) → catch error → LocalAgent fallback (stable)
 | Model | Use Case | Cost |
 |-------|----------|------|
 | `claude-opus-4-7-20250501` | Complex reasoning, multi-step research | Highest |
-| `claude-opus-4-6` | General agent tasks | High |
+| `claude-opus-4-7` | General agent tasks | High |
 | `claude-sonnet-4-6` | Fast tasks, sub-agents, high-volume | Medium |
 | `claude-haiku-4-5-20251001` | Classification, routing, simple tools | Low |
 
@@ -371,7 +371,7 @@ async def main():
 
     for _ in range(10):
         resp = await client.messages.create(
-            model="claude-sonnet-4-6", max_tokens=1024,
+            model="claude-opus-4-7", max_tokens=1024,
             tools=TOOLS, messages=messages,
         )
         tool_uses = [b for b in resp.content if b.type == "tool_use"]
@@ -401,7 +401,7 @@ const server = createSdkMcpServer({ name: 'tools', version: '1.0.0', tools: [cal
 
 for await (const msg of query({
   prompt: 'What is 42 * 17?',
-  options: { mcpServers: { tools: server }, model: 'claude-sonnet-4-6' },
+  options: { mcpServers: { tools: server }, model: 'claude-opus-4-7' },
 })) {
   if (msg.type === 'result') console.log(msg.result);
 }

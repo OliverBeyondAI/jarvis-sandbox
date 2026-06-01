@@ -13,7 +13,7 @@ class Config:
     """Immutable configuration for the Autonomous Research Agent."""
 
     # Claude model
-    model: str = "claude-sonnet-4-6-20250514"
+    model: str = "claude-opus-4-7-20250501"
     max_tokens: int = 16384
     max_agent_turns: int = 40
 

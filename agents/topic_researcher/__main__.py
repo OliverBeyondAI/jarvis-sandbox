@@ -38,7 +38,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--model", "-m",
-        default="claude-opus-4-6-20250501",
+        default="claude-opus-4-7-20250501",
         help="Claude model to use.",
     )
     parser.add_argument(

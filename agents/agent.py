@@ -26,7 +26,7 @@ from .tools import ALL_TOOLS, execute_tool
 # Constants
 # ---------------------------------------------------------------------------
 
-MODEL = "claude-sonnet-4-6-20250514"  # Valid model; upgrade to claude-opus-4-6-20250501 if needed
+MODEL = "claude-opus-4-7-20250501"  # Upgraded to Opus 4.7
 MAX_TOKENS = 8192
 
 DEFAULT_SYSTEM_PROMPT = textwrap.dedent("""\

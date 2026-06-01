@@ -169,7 +169,7 @@ def main() -> None:
               python -m dispatch_agent "Impact of AI on healthcare"
               python -m dispatch_agent --max-agents 3 "Quantum computing 2025"
               python -m dispatch_agent --json "Fusion energy progress"
-              python -m dispatch_agent --model claude-sonnet-4-20250514 "AI safety"
+              python -m dispatch_agent --model claude-opus-4-7-20250501 "AI safety"
         """),
     )
 

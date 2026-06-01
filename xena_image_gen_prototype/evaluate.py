@@ -325,7 +325,7 @@ def llm_score_image(client, prompt_obj, image_path: Path) -> dict:
 
     try:
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-opus-4-7-20250501",
             max_tokens=600,
             messages=[
                 {

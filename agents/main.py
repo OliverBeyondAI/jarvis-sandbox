@@ -95,7 +95,7 @@ def main() -> None:
               python -m agents --topic "frontier AI models and agentic frameworks"
               python -m agents --topic "quantum computing" --depth brief
               python -m agents --local --topic "LLM scaling laws" --json
-              python -m agents --model claude-sonnet-4-20250514 "Hello"
+              python -m agents --model claude-opus-4-7-20250501 "Hello"
         """),
     )
 

@@ -13,7 +13,7 @@ class TestConfigDefaults:
 
     def test_default_model(self):
         cfg = Config()
-        assert cfg.model == "claude-sonnet-4-6-20250514"
+        assert cfg.model == "claude-opus-4-7-20250501"
 
     def test_default_max_tokens(self):
         cfg = Config()

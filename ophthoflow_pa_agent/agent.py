@@ -35,7 +35,7 @@ from .payer_portal.procedure_data import DIAGNOSIS_DESCRIPTIONS, PROCEDURE_CATAL
 # Constants
 # ---------------------------------------------------------------------------
 
-MODEL = "claude-opus-4-6"
+MODEL = "claude-opus-4-7"
 
 PROCEDURE_LOOKUP: dict[str, str] = {
     "ranibizumab": "J2778",

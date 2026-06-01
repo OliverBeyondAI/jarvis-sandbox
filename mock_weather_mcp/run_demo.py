@@ -203,7 +203,7 @@ async def demo_agent() -> None:
 
     banner("Claude Agent with Weather MCP Tools")
 
-    model = "claude-sonnet-4-6-20250627"
+    model = "claude-opus-4-7-20250501"
     client = anthropic.AsyncAnthropic()
 
     server_params = StdioServerParameters(

@@ -32,7 +32,7 @@ class AgentConfig:
     """Configuration for the Opus agent."""
 
     # Model settings
-    model: str = os.getenv("OPUS_AGENT_MODEL", "claude-opus-4-6-20250501")
+    model: str = os.getenv("OPUS_AGENT_MODEL", "claude-opus-4-7-20250501")
     max_tokens: int = int(os.getenv("OPUS_AGENT_MAX_TOKENS", "8192"))
     temperature: float = float(os.getenv("OPUS_AGENT_TEMPERATURE", "0.3"))
 

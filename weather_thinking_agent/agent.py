@@ -36,7 +36,7 @@ from mcp.client.stdio import stdio_client
 # Constants
 # ---------------------------------------------------------------------------
 
-MODEL = "claude-opus-4-6-20250514"
+MODEL = "claude-opus-4-7-20250501"
 MAX_TOKENS = 16_000
 DEFAULT_BUDGET_TOKENS = 10_000
 MAX_TURNS = 15

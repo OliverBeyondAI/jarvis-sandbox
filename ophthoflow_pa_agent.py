@@ -42,7 +42,7 @@ except ImportError:
 # Constants
 # ---------------------------------------------------------------------------
 
-MODEL = "claude-opus-4-6"  # Latest Claude Opus model
+MODEL = "claude-opus-4-7"  # Latest Claude Opus model
 
 # Common ophthalmology procedure code reference
 PROCEDURE_CODES: dict[str, dict[str, str]] = {

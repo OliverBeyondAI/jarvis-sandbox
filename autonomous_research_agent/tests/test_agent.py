@@ -23,7 +23,7 @@ class TestAgentInit:
 
     def test_creates_with_default_config(self):
         agent = AutonomousResearchAgent()
-        assert agent.config.model == "claude-sonnet-4-6-20250514"
+        assert agent.config.model == "claude-opus-4-7-20250501"
 
     def test_creates_with_custom_config(self, test_config):
         agent = AutonomousResearchAgent(config=test_config)

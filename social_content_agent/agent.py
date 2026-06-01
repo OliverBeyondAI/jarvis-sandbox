@@ -250,7 +250,7 @@ def execute_tool(name: str, input_data: dict) -> str:
 def run_agent(
     product: ProductInfo,
     brand_voice: BrandVoice,
-    model: str = "claude-sonnet-4-20250514",
+    model: str = "claude-opus-4-7-20250501",
     max_turns: int = 30,
 ) -> WeeklyContentPlan:
     """Run the social content agent and return a WeeklyContentPlan."""

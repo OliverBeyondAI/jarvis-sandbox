@@ -31,7 +31,7 @@ from .models import (
 
 PASS_THRESHOLD = 7  # Overall score >= 7 means the post passes
 DEFAULT_MAX_ROUNDS = 3
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_MODEL = "claude-opus-4-7-20250501"
 
 # ---------------------------------------------------------------------------
 # Tool definitions for the evaluate phase

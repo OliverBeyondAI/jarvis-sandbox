@@ -35,7 +35,7 @@ from autonomous_research_agent.models import (
 def test_config(tmp_path):
     """Config pointing to a temp output directory."""
     return Config(
-        model="claude-sonnet-4-6-20250514",
+        model="claude-opus-4-7-20250501",
         max_tokens=1024,
         max_agent_turns=5,
         tavily_api_key="test-tavily-key",

@@ -157,7 +157,7 @@ run_e2e_demo.py       # Top-level end-to-end demo orchestrating both components
 ### Extended thinking
 ```python
 response = await client.messages.create(
-    model="claude-opus-4-6-20250514",
+    model="claude-opus-4-7-20250501",
     thinking={"type": "enabled", "budget_tokens": 10_000},
     tools=claude_tools,
     messages=messages,

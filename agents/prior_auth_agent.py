@@ -40,7 +40,7 @@ import anthropic
 # Configuration
 # ---------------------------------------------------------------------------
 
-MODEL = os.environ.get("PA_AGENT_MODEL", "claude-sonnet-4-6-20250514")
+MODEL = os.environ.get("PA_AGENT_MODEL", "claude-opus-4-7-20250501")
 MAX_TOKENS = 4096
 MAX_TURNS = 40
 

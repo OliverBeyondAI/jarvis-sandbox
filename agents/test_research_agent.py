@@ -810,8 +810,8 @@ class TestResearchAgent:
 # ---------------------------------------------------------------------------
 
 class TestConfiguration:
-    def test_model_is_opus_4_6(self):
-        assert "opus-4-6" in MODEL
+    def test_model_is_opus_4_7(self):
+        assert "opus-4-7" in MODEL
 
     def test_system_prompt_has_four_phases(self):
         assert "Phase 1: Discovery" in SYSTEM_PROMPT

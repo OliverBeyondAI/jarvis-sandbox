@@ -147,7 +147,7 @@ class TopicResearcher:
 
     def __init__(
         self,
-        model: str = "claude-opus-4-6-20250501",
+        model: str = "claude-opus-4-7-20250501",
         max_turns: int = 10,
     ):
         self.model = model

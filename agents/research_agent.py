@@ -299,7 +299,7 @@ def _extract_open_questions(sections: list[tuple[str, list[str]]], full_text: st
 # Configuration
 # ---------------------------------------------------------------------------
 
-MODEL = "claude-opus-4-6-20250501"
+MODEL = "claude-opus-4-7-20250501"
 MAX_TOKENS = 8192
 MAX_TURNS = 30
 

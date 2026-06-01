@@ -40,7 +40,7 @@ from mcp.client.stdio import stdio_client
 # Constants
 # ---------------------------------------------------------------------------
 
-MODEL = "claude-sonnet-4-6-20250627"
+MODEL = "claude-opus-4-7-20250501"
 MAX_TOKENS = 4096
 MCP_SERVER_SCRIPT = str(Path(__file__).parent / "mcp_server.py")
 

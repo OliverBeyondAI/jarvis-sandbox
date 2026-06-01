@@ -228,7 +228,7 @@ def main() -> None:
         "--model", "-m",
         type=str,
         default=None,
-        help="Override Claude model (default: claude-sonnet-4-6-20250514)",
+        help="Override Claude model (default: claude-opus-4-7-20250501)",
     )
     parser.add_argument(
         "--json", "-j",

@@ -198,7 +198,7 @@ BRAND_VOICE_PRESETS = {
 }
 
 
-def run_demo(scenario_name: str, model: str = "claude-sonnet-4-20250514") -> WeeklyContentPlan:
+def run_demo(scenario_name: str, model: str = "claude-opus-4-7-20250501") -> WeeklyContentPlan:
     """Run a pre-built demo scenario."""
     if scenario_name not in DEMO_SCENARIOS:
         print(f"Unknown demo: {scenario_name}", file=sys.stderr)
@@ -254,8 +254,8 @@ Examples:
     )
     parser.add_argument(
         "--model",
-        default="claude-sonnet-4-20250514",
-        help="Claude model to use (default: claude-sonnet-4-20250514)",
+        default="claude-opus-4-7-20250501",
+        help="Claude model to use (default: claude-opus-4-7-20250501)",
     )
     parser.add_argument(
         "--refine",

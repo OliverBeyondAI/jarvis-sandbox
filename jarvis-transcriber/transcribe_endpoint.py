@@ -34,7 +34,7 @@ app.add_middleware(
 MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
 SUPPORTED_FORMATS = {".m4a", ".mp3", ".wav", ".opus", ".ogg", ".webm", ".flac"}
 BEDROCK_REGION = os.environ.get("AWS_REGION", "us-east-1")
-BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "anthropic.claude-sonnet-4-20250514-v1:0")
+BEDROCK_MODEL_ID = os.environ.get("BEDROCK_MODEL_ID", "us.anthropic.claude-opus-4-7-20250501-v1:0")
 
 # Media type mapping for Bedrock's audio content blocks
 MEDIA_TYPE_MAP = {
